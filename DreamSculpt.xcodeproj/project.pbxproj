@@ -1,0 +1,593 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		55F51B762E64BF8A00E69011 /* DreamSculptApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B752E64BF8A00E69011 /* DreamSculptApp.swift */; };
+		55F51B782E64BF8A00E69011 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B772E64BF8A00E69011 /* ContentView.swift */; };
+		55F51B7A2E64BF8B00E69011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55F51B792E64BF8B00E69011 /* Assets.xcassets */; };
+		55F51B7D2E64BF8B00E69011 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55F51B7C2E64BF8B00E69011 /* Preview Assets.xcassets */; };
+		55F51B872E64BF8C00E69011 /* DreamSculptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B862E64BF8C00E69011 /* DreamSculptTests.swift */; };
+		55F51B912E64BF8C00E69011 /* DreamSculptUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B902E64BF8C00E69011 /* DreamSculptUITests.swift */; };
+		55F51B932E64BF8C00E69011 /* DreamSculptUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B922E64BF8C00E69011 /* DreamSculptUITestsLaunchTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		55F51B832E64BF8C00E69011 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 55F51B6A2E64BF8A00E69011 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 55F51B712E64BF8A00E69011;
+			remoteInfo = DreamSculpt;
+		};
+		55F51B8D2E64BF8C00E69011 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 55F51B6A2E64BF8A00E69011 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 55F51B712E64BF8A00E69011;
+			remoteInfo = DreamSculpt;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		55F51B722E64BF8A00E69011 /* DreamSculpt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DreamSculpt.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		55F51B752E64BF8A00E69011 /* DreamSculptApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DreamSculptApp.swift; sourceTree = "<group>"; };
+		55F51B772E64BF8A00E69011 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		55F51B792E64BF8B00E69011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		55F51B7C2E64BF8B00E69011 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		55F51B822E64BF8B00E69011 /* DreamSculptTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DreamSculptTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		55F51B862E64BF8C00E69011 /* DreamSculptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DreamSculptTests.swift; sourceTree = "<group>"; };
+		55F51B8C2E64BF8C00E69011 /* DreamSculptUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DreamSculptUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		55F51B902E64BF8C00E69011 /* DreamSculptUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DreamSculptUITests.swift; sourceTree = "<group>"; };
+		55F51B922E64BF8C00E69011 /* DreamSculptUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DreamSculptUITestsLaunchTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		55F51B6F2E64BF8A00E69011 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		55F51B7F2E64BF8B00E69011 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		55F51B892E64BF8C00E69011 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		55F51B692E64BF8A00E69011 = {
+			isa = PBXGroup;
+			children = (
+				55F51B742E64BF8A00E69011 /* DreamSculpt */,
+				55F51B852E64BF8C00E69011 /* DreamSculptTests */,
+				55F51B8F2E64BF8C00E69011 /* DreamSculptUITests */,
+				55F51B732E64BF8A00E69011 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		55F51B732E64BF8A00E69011 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				55F51B722E64BF8A00E69011 /* DreamSculpt.app */,
+				55F51B822E64BF8B00E69011 /* DreamSculptTests.xctest */,
+				55F51B8C2E64BF8C00E69011 /* DreamSculptUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		55F51B742E64BF8A00E69011 /* DreamSculpt */ = {
+			isa = PBXGroup;
+			children = (
+				55F51B752E64BF8A00E69011 /* DreamSculptApp.swift */,
+				55F51B772E64BF8A00E69011 /* ContentView.swift */,
+				55F51B792E64BF8B00E69011 /* Assets.xcassets */,
+				55F51B7B2E64BF8B00E69011 /* Preview Content */,
+			);
+			path = DreamSculpt;
+			sourceTree = "<group>";
+		};
+		55F51B7B2E64BF8B00E69011 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				55F51B7C2E64BF8B00E69011 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		55F51B852E64BF8C00E69011 /* DreamSculptTests */ = {
+			isa = PBXGroup;
+			children = (
+				55F51B862E64BF8C00E69011 /* DreamSculptTests.swift */,
+			);
+			path = DreamSculptTests;
+			sourceTree = "<group>";
+		};
+		55F51B8F2E64BF8C00E69011 /* DreamSculptUITests */ = {
+			isa = PBXGroup;
+			children = (
+				55F51B902E64BF8C00E69011 /* DreamSculptUITests.swift */,
+				55F51B922E64BF8C00E69011 /* DreamSculptUITestsLaunchTests.swift */,
+			);
+			path = DreamSculptUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		55F51B712E64BF8A00E69011 /* DreamSculpt */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 55F51B962E64BF8C00E69011 /* Build configuration list for PBXNativeTarget "DreamSculpt" */;
+			buildPhases = (
+				55F51B6E2E64BF8A00E69011 /* Sources */,
+				55F51B6F2E64BF8A00E69011 /* Frameworks */,
+				55F51B702E64BF8A00E69011 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DreamSculpt;
+			productName = DreamSculpt;
+			productReference = 55F51B722E64BF8A00E69011 /* DreamSculpt.app */;
+			productType = "com.apple.product-type.application";
+		};
+		55F51B812E64BF8B00E69011 /* DreamSculptTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 55F51B992E64BF8C00E69011 /* Build configuration list for PBXNativeTarget "DreamSculptTests" */;
+			buildPhases = (
+				55F51B7E2E64BF8B00E69011 /* Sources */,
+				55F51B7F2E64BF8B00E69011 /* Frameworks */,
+				55F51B802E64BF8B00E69011 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				55F51B842E64BF8C00E69011 /* PBXTargetDependency */,
+			);
+			name = DreamSculptTests;
+			productName = DreamSculptTests;
+			productReference = 55F51B822E64BF8B00E69011 /* DreamSculptTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		55F51B8B2E64BF8C00E69011 /* DreamSculptUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 55F51B9C2E64BF8C00E69011 /* Build configuration list for PBXNativeTarget "DreamSculptUITests" */;
+			buildPhases = (
+				55F51B882E64BF8C00E69011 /* Sources */,
+				55F51B892E64BF8C00E69011 /* Frameworks */,
+				55F51B8A2E64BF8C00E69011 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				55F51B8E2E64BF8C00E69011 /* PBXTargetDependency */,
+			);
+			name = DreamSculptUITests;
+			productName = DreamSculptUITests;
+			productReference = 55F51B8C2E64BF8C00E69011 /* DreamSculptUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		55F51B6A2E64BF8A00E69011 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					55F51B712E64BF8A00E69011 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+					55F51B812E64BF8B00E69011 = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = 55F51B712E64BF8A00E69011;
+					};
+					55F51B8B2E64BF8C00E69011 = {
+						CreatedOnToolsVersion = 15.4;
+						TestTargetID = 55F51B712E64BF8A00E69011;
+					};
+				};
+			};
+			buildConfigurationList = 55F51B6D2E64BF8A00E69011 /* Build configuration list for PBXProject "DreamSculpt" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 55F51B692E64BF8A00E69011;
+			productRefGroup = 55F51B732E64BF8A00E69011 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				55F51B712E64BF8A00E69011 /* DreamSculpt */,
+				55F51B812E64BF8B00E69011 /* DreamSculptTests */,
+				55F51B8B2E64BF8C00E69011 /* DreamSculptUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		55F51B702E64BF8A00E69011 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				55F51B7D2E64BF8B00E69011 /* Preview Assets.xcassets in Resources */,
+				55F51B7A2E64BF8B00E69011 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		55F51B802E64BF8B00E69011 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		55F51B8A2E64BF8C00E69011 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		55F51B6E2E64BF8A00E69011 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				55F51B782E64BF8A00E69011 /* ContentView.swift in Sources */,
+				55F51B762E64BF8A00E69011 /* DreamSculptApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		55F51B7E2E64BF8B00E69011 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				55F51B872E64BF8C00E69011 /* DreamSculptTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		55F51B882E64BF8C00E69011 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				55F51B912E64BF8C00E69011 /* DreamSculptUITests.swift in Sources */,
+				55F51B932E64BF8C00E69011 /* DreamSculptUITestsLaunchTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		55F51B842E64BF8C00E69011 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 55F51B712E64BF8A00E69011 /* DreamSculpt */;
+			targetProxy = 55F51B832E64BF8C00E69011 /* PBXContainerItemProxy */;
+		};
+		55F51B8E2E64BF8C00E69011 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 55F51B712E64BF8A00E69011 /* DreamSculpt */;
+			targetProxy = 55F51B8D2E64BF8C00E69011 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		55F51B942E64BF8C00E69011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		55F51B952E64BF8C00E69011 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		55F51B972E64BF8C00E69011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"DreamSculpt/Preview Content\"";
+				DEVELOPMENT_TEAM = YQKQ6M73X5;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.DreamSculpt;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		55F51B982E64BF8C00E69011 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"DreamSculpt/Preview Content\"";
+				DEVELOPMENT_TEAM = YQKQ6M73X5;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.DreamSculpt;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		55F51B9A2E64BF8C00E69011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YQKQ6M73X5;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.DreamSculptTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DreamSculpt.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DreamSculpt";
+			};
+			name = Debug;
+		};
+		55F51B9B2E64BF8C00E69011 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YQKQ6M73X5;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.DreamSculptTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DreamSculpt.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DreamSculpt";
+			};
+			name = Release;
+		};
+		55F51B9D2E64BF8C00E69011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YQKQ6M73X5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.DreamSculptUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = DreamSculpt;
+			};
+			name = Debug;
+		};
+		55F51B9E2E64BF8C00E69011 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YQKQ6M73X5;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.DreamSculptUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = DreamSculpt;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		55F51B6D2E64BF8A00E69011 /* Build configuration list for PBXProject "DreamSculpt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55F51B942E64BF8C00E69011 /* Debug */,
+				55F51B952E64BF8C00E69011 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		55F51B962E64BF8C00E69011 /* Build configuration list for PBXNativeTarget "DreamSculpt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55F51B972E64BF8C00E69011 /* Debug */,
+				55F51B982E64BF8C00E69011 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		55F51B992E64BF8C00E69011 /* Build configuration list for PBXNativeTarget "DreamSculptTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55F51B9A2E64BF8C00E69011 /* Debug */,
+				55F51B9B2E64BF8C00E69011 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		55F51B9C2E64BF8C00E69011 /* Build configuration list for PBXNativeTarget "DreamSculptUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55F51B9D2E64BF8C00E69011 /* Debug */,
+				55F51B9E2E64BF8C00E69011 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 55F51B6A2E64BF8A00E69011 /* Project object */;
+}
