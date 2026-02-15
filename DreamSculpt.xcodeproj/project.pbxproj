@@ -15,6 +15,25 @@
 		55F51B932E64BF8C00E69011 /* DreamSculptUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B922E64BF8C00E69011 /* DreamSculptUITestsLaunchTests.swift */; };
 		55F51BA02E65057A00E69011 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B9F2E65057A00E69011 /* CanvasView.swift */; };
 		55F51BA62E653A6000E69011 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BA52E653A6000E69011 /* APIClient.swift */; };
+		55F51BB02E66000000E69011 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BAF2E66000000E69011 /* AppState.swift */; };
+		55F51BB22E66000100E69011 /* GenerationRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BB12E66000100E69011 /* GenerationRecord.swift */; };
+		55F51BB42E66000200E69011 /* DebounceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BB32E66000200E69011 /* DebounceManager.swift */; };
+		55F51BB62E66000300E69011 /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BB52E66000300E69011 /* HistoryManager.swift */; };
+		55F51BB82E66000400E69011 /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BB72E66000400E69011 /* ColorPalette.swift */; };
+		55F51BBA2E66000500E69011 /* GlassmorphicModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BB92E66000500E69011 /* GlassmorphicModifier.swift */; };
+		55F51BBC2E66000600E69011 /* HamburgerMenuButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BBB2E66000600E69011 /* HamburgerMenuButton.swift */; };
+		55F51BBE2E66000700E69011 /* HistoryDrawer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BBD2E66000700E69011 /* HistoryDrawer.swift */; };
+		55F51BC02E66000800E69011 /* HistoryThumbnailCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BBF2E66000800E69011 /* HistoryThumbnailCard.swift */; };
+		55F51BC22E66000900E69011 /* AIPreviewPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BC12E66000900E69011 /* AIPreviewPanel.swift */; };
+		55F51BC42E66000A00E69011 /* LoadingIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BC32E66000A00E69011 /* LoadingIndicator.swift */; };
+		55F51BC62E66000B00E69011 /* LoadImageButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BC52E66000B00E69011 /* LoadImageButton.swift */; };
+		55F51BC82E66100000E69011 /* GenerationSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BC72E66100000E69011 /* GenerationSettings.swift */; };
+		55F51BCA2E66100100E69011 /* PromptBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BC92E66100100E69011 /* PromptBar.swift */; };
+		55F51BCC2E66100200E69011 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BCB2E66100200E69011 /* HapticManager.swift */; };
+		55F51BCE2E66100300E69011 /* SettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BCD2E66100300E69011 /* SettingsPanel.swift */; };
+		55F51BD02E66200000E69011 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BCF2E66200000E69011 /* SplashView.swift */; };
+		55F51BD22E66200100E69011 /* CanvasHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BD12E66200100E69011 /* CanvasHeader.swift */; };
+		55F51BD42E66300000E69011 /* RoundedCorner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BD32E66300000E69011 /* RoundedCorner.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +65,25 @@
 		55F51B922E64BF8C00E69011 /* DreamSculptUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DreamSculptUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		55F51B9F2E65057A00E69011 /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
 		55F51BA52E653A6000E69011 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		55F51BAF2E66000000E69011 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		55F51BB12E66000100E69011 /* GenerationRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerationRecord.swift; sourceTree = "<group>"; };
+		55F51BB32E66000200E69011 /* DebounceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebounceManager.swift; sourceTree = "<group>"; };
+		55F51BB52E66000300E69011 /* HistoryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryManager.swift; sourceTree = "<group>"; };
+		55F51BB72E66000400E69011 /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
+		55F51BB92E66000500E69011 /* GlassmorphicModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassmorphicModifier.swift; sourceTree = "<group>"; };
+		55F51BBB2E66000600E69011 /* HamburgerMenuButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HamburgerMenuButton.swift; sourceTree = "<group>"; };
+		55F51BBD2E66000700E69011 /* HistoryDrawer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryDrawer.swift; sourceTree = "<group>"; };
+		55F51BBF2E66000800E69011 /* HistoryThumbnailCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryThumbnailCard.swift; sourceTree = "<group>"; };
+		55F51BC12E66000900E69011 /* AIPreviewPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIPreviewPanel.swift; sourceTree = "<group>"; };
+		55F51BC32E66000A00E69011 /* LoadingIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingIndicator.swift; sourceTree = "<group>"; };
+		55F51BC52E66000B00E69011 /* LoadImageButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadImageButton.swift; sourceTree = "<group>"; };
+		55F51BC72E66100000E69011 /* GenerationSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerationSettings.swift; sourceTree = "<group>"; };
+		55F51BC92E66100100E69011 /* PromptBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptBar.swift; sourceTree = "<group>"; };
+		55F51BCB2E66100200E69011 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
+		55F51BCD2E66100300E69011 /* SettingsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPanel.swift; sourceTree = "<group>"; };
+		55F51BCF2E66200000E69011 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
+		55F51BD12E66200100E69011 /* CanvasHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasHeader.swift; sourceTree = "<group>"; };
+		55F51BD32E66300000E69011 /* RoundedCorner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedCorner.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,12 +134,15 @@
 		55F51B742E64BF8A00E69011 /* DreamSculpt */ = {
 			isa = PBXGroup;
 			children = (
+				55F51BAA2E66000000E69011 /* Models */,
+				55F51BAB2E66000000E69011 /* Managers */,
+				55F51BAC2E66000000E69011 /* Views */,
+				55F51BAD2E66000000E69011 /* Utilities */,
 				55F51BA22E650D7C00E69011 /* Preview Content */,
 				55F51B752E64BF8A00E69011 /* DreamSculptApp.swift */,
 				55F51B772E64BF8A00E69011 /* ContentView.swift */,
 				55F51B9F2E65057A00E69011 /* CanvasView.swift */,
 				55F51B792E64BF8B00E69011 /* Assets.xcassets */,
-				55F51BA12E650D5D00E69011 /* Preview Content */,
 				55F51BA52E653A6000E69011 /* APIClient.swift */,
 			);
 			path = DreamSculpt;
@@ -124,19 +165,58 @@
 			path = DreamSculptUITests;
 			sourceTree = "<group>";
 		};
-		55F51BA12E650D5D00E69011 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = "Preview Content";
-			path = "../../../../.Trash/Preview Content";
-			sourceTree = "<group>";
-		};
 		55F51BA22E650D7C00E69011 /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		55F51BAA2E66000000E69011 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				55F51BAF2E66000000E69011 /* AppState.swift */,
+				55F51BB12E66000100E69011 /* GenerationRecord.swift */,
+				55F51BC72E66100000E69011 /* GenerationSettings.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		55F51BAB2E66000000E69011 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				55F51BB32E66000200E69011 /* DebounceManager.swift */,
+				55F51BB52E66000300E69011 /* HistoryManager.swift */,
+				55F51BCB2E66100200E69011 /* HapticManager.swift */,
+			);
+			path = Managers;
+			sourceTree = "<group>";
+		};
+		55F51BAC2E66000000E69011 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				55F51BBB2E66000600E69011 /* HamburgerMenuButton.swift */,
+				55F51BBD2E66000700E69011 /* HistoryDrawer.swift */,
+				55F51BBF2E66000800E69011 /* HistoryThumbnailCard.swift */,
+				55F51BC12E66000900E69011 /* AIPreviewPanel.swift */,
+				55F51BC32E66000A00E69011 /* LoadingIndicator.swift */,
+				55F51BC52E66000B00E69011 /* LoadImageButton.swift */,
+				55F51BC92E66100100E69011 /* PromptBar.swift */,
+				55F51BCD2E66100300E69011 /* SettingsPanel.swift */,
+				55F51BCF2E66200000E69011 /* SplashView.swift */,
+				55F51BD12E66200100E69011 /* CanvasHeader.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		55F51BAD2E66000000E69011 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				55F51BB72E66000400E69011 /* ColorPalette.swift */,
+				55F51BB92E66000500E69011 /* GlassmorphicModifier.swift */,
+				55F51BD32E66300000E69011 /* RoundedCorner.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -272,6 +352,25 @@
 				55F51B762E64BF8A00E69011 /* DreamSculptApp.swift in Sources */,
 				55F51BA02E65057A00E69011 /* CanvasView.swift in Sources */,
 				55F51BA62E653A6000E69011 /* APIClient.swift in Sources */,
+				55F51BB02E66000000E69011 /* AppState.swift in Sources */,
+				55F51BB22E66000100E69011 /* GenerationRecord.swift in Sources */,
+				55F51BB42E66000200E69011 /* DebounceManager.swift in Sources */,
+				55F51BB62E66000300E69011 /* HistoryManager.swift in Sources */,
+				55F51BB82E66000400E69011 /* ColorPalette.swift in Sources */,
+				55F51BBA2E66000500E69011 /* GlassmorphicModifier.swift in Sources */,
+				55F51BBC2E66000600E69011 /* HamburgerMenuButton.swift in Sources */,
+				55F51BBE2E66000700E69011 /* HistoryDrawer.swift in Sources */,
+				55F51BC02E66000800E69011 /* HistoryThumbnailCard.swift in Sources */,
+				55F51BC22E66000900E69011 /* AIPreviewPanel.swift in Sources */,
+				55F51BC42E66000A00E69011 /* LoadingIndicator.swift in Sources */,
+				55F51BC62E66000B00E69011 /* LoadImageButton.swift in Sources */,
+				55F51BC82E66100000E69011 /* GenerationSettings.swift in Sources */,
+				55F51BCA2E66100100E69011 /* PromptBar.swift in Sources */,
+				55F51BCC2E66100200E69011 /* HapticManager.swift in Sources */,
+				55F51BCE2E66100300E69011 /* SettingsPanel.swift in Sources */,
+				55F51BD02E66200000E69011 /* SplashView.swift in Sources */,
+				55F51BD22E66200100E69011 /* CanvasHeader.swift in Sources */,
+				55F51BD42E66300000E69011 /* RoundedCorner.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

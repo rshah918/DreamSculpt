@@ -17,15 +17,13 @@ struct ImageRequest: Codable {
     var batch_count: Int
     var height: Int
     var width: Int
-    
-    init(image: UIImage) {
-        self.prompt = """
-        Transform this rough sketch into an awe-inspiring, photorealistic image. Use the sketch only as a structural guide for composition and proportions. Add realistic depth, dramatic lighting, and atmospheric effects such as reflections, sky, and shadows, so the scene feels immersive and cinematic. The final result should look like a stunning photograph, true to the layout of the sketch but elevated into a vivid, breathtaking real-world scene
-        """
+
+    init(image: UIImage, prompt: String, settings: GenerationSettings) {
+        self.prompt = prompt
         self.init_images = [image.pngData()!.base64EncodedString()]
-        self.denoising_strength = 1.0
-        self.steps = 3
-        self.cfg_scale = 4.5
+        self.denoising_strength = settings.denoisingStrength
+        self.steps = settings.steps
+        self.cfg_scale = settings.cfgScale
         self.batch_count = 1
         self.height = Int(image.size.height * 3)
         self.width = Int(image.size.width * 3)
@@ -36,9 +34,9 @@ struct APIResponseSchema: Decodable {
     let images: [String]
 }
 
-func uploadDrawing(image: UIImage) async -> UIImage? {
+func uploadDrawing(image: UIImage, prompt: String, settings: GenerationSettings) async -> UIImage? {
     let url = URL(string: "http://127.0.0.1:8003/sdapi/v1/img2img")
-    let body = ImageRequest(image: image)
+    let body = ImageRequest(image: image, prompt: prompt, settings: settings)
     do {
         let jsonData = try JSONEncoder().encode(body)
         var request = URLRequest(url: url!)

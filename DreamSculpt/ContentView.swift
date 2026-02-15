@@ -2,57 +2,81 @@
 //  ContentView.swift
 //  DreamSculpt
 //
-//  Created by Rahul Shah on 8/31/25.
-//
 
 import SwiftUI
 
 struct ContentView: View {
-    @State var image: UIImage? = nil
+    @EnvironmentObject var appState: AppState
     @State private var previewOffset: CGSize = .zero
     @State private var isExpanded: Bool = false
+    @State private var isPromptBarExpanded: Bool = false
 
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Full canvas background
-                CanvasView(image: $image)
+                // Background color (visible in gaps/behind header)
+                Color(hex: "0F0F23")
                     .ignoresSafeArea()
-                
-                if let result = image {
-                    Image(uiImage: result)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: isExpanded ? min(geo.size.width, geo.size.height) : 120,
-                               height: isExpanded ? min(geo.size.width, geo.size.height) : 120)
-                        .background(Color.white)
-                        .cornerRadius(12)
-                        .shadow(radius: 8)
-                        .offset(isExpanded ? .zero : previewOffset)
-                         // top-right corner default, center + full-screen on tap
-                        .position(x: isExpanded ? geo.size.width / 2 : UIScreen.main.bounds.width - 90,
-                                  y: isExpanded ? geo.size.height / 2 : 100)
-                        .gesture(
-                            DragGesture()
-                                .onChanged { value in
-                                    previewOffset = value.translation
-                                }
-                        )
-                        .onTapGesture {
-                            withAnimation(.spring()) {
-                                isExpanded.toggle()
+
+                VStack(spacing: 0) {
+                    // Aurora Header (compact, premium look)
+                    AuroraHeader()
+
+                    // Canvas container with rounded top corners - extends to bottom
+                    ZStack {
+                        CanvasView(
+                            generatedImage: $appState.currentPreviewImage,
+                            isLoading: $appState.isLoading,
+                            baseImage: appState.baseImage,
+                            showPaperTexture: appState.showPaperTexture,
+                            customPrompt: appState.customPrompt,
+                            generationSettings: appState.generationSettings,
+                            onGenerationComplete: { sketch, result in
+                                appState.addToHistory(sketch: sketch, result: result)
                             }
+                        )
+                        .clipShape(RoundedCorner(radius: 16, corners: [.topLeft, .topRight]))
+                        .shadow(color: .black.opacity(0.3), radius: 12, y: -4)
+
+                        // Prompt bar overlay at bottom
+                        VStack {
+                            Spacer()
+                            PromptBar(isExpanded: $isPromptBarExpanded)
                         }
-                        .animation(.easeInOut, value: isExpanded)
+                    }
+                    .ignoresSafeArea(edges: .bottom)
                 }
+
+                // AI Preview Panel - passes session history for slider
+                AIPreviewPanel(
+                    image: appState.currentPreviewImage,
+                    isLoading: appState.isLoading,
+                    isExpanded: $isExpanded,
+                    offset: $previewOffset,
+                    sessionImages: appState.sessionImages,
+                    sessionIndex: Binding(
+                        get: { appState.sessionIndex },
+                        set: { appState.setSessionIndex($0) }
+                    )
+                )
+
+                // History Drawer overlay
+                HistoryDrawer(
+                    isOpen: $appState.isDrawerOpen,
+                    onSelectRecord: { record in
+                        if let image = record.resultImage {
+                            appState.setBaseImage(image)
+                        }
+                    }
+                )
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
+        .ignoresSafeArea(edges: .bottom)
     }
 }
 
-
-
 #Preview {
     ContentView()
+        .environmentObject(AppState())
 }
