@@ -204,6 +204,14 @@ struct CanvasView: UIViewRepresentable {
             pendingDrawing = canvasView.drawing
         }
 
+        func canvasViewDidBeginUsingTool(_ canvasView: PKCanvasView) {
+            debounceManager.strokeBegan()
+        }
+        
+        func canvasViewDidEndUsingTool(_ canvasView: PKCanvasView) {
+            debounceManager.strokeEnded()
+        }
+        
         private func checkAndSendPendingRequest() {
             guard let drawing = pendingDrawing else { return }
             guard !drawing.bounds.isEmpty else { return }
