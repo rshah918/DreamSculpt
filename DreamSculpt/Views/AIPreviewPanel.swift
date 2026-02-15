@@ -51,7 +51,7 @@ struct AIPreviewPanel: View {
         // Default position: bottom-right corner of canvas (below header, above toolbar)
         let position = isExpanded
             ? CGPoint(x: geo.size.width / 2, y: geo.size.height / 2 - 40)
-            : CGPoint(x: geo.size.width - 85, y: geo.size.height - 280)
+            : CGPoint(x: geo.size.width - 85, y: 185)
 
         return VStack(spacing: 16) {
             ZStack {

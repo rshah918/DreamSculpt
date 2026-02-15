@@ -12,7 +12,7 @@ class DebounceManager {
     private var isStrokeInProgress = false
     private let minInterval: TimeInterval
 
-    init(minInterval: TimeInterval = 0.5) {
+    init(minInterval: TimeInterval = 5.0) {
         self.minInterval = minInterval
     }
 
