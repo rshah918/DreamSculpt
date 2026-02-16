@@ -19,6 +19,7 @@ struct CanvasView: UIViewRepresentable {
     var generationSettings: GenerationSettings
     var onGenerationComplete: ((UIImage, UIImage) -> Void)?
     var clearCanvasAction: (() -> Void)?
+    let toolPicker = PKToolPicker()
 
     func makeUIView(context: Context) -> UIView {
         let containerView = UIView()
@@ -47,18 +48,13 @@ struct CanvasView: UIViewRepresentable {
         canvasView.translatesAutoresizingMaskIntoConstraints = false
         canvasView.tag = 200
         containerView.addSubview(canvasView)
-
-        // Set up tool picker
-        let toolPicker = PKToolPicker()
         toolPicker.setVisible(true, forFirstResponder: canvasView)
         toolPicker.addObserver(canvasView)
-        canvasView.becomeFirstResponder()
 
         // Store references in coordinator
         context.coordinator.canvasView = canvasView
         context.coordinator.backgroundImageView = backgroundImageView
         context.coordinator.textureView = textureView
-        context.coordinator.toolPicker = toolPicker
 
         // Set delegate
         canvasView.delegate = context.coordinator
@@ -105,6 +101,20 @@ struct CanvasView: UIViewRepresentable {
 
         // Update coordinator reference
         context.coordinator.parent = self
+        
+        DispatchQueue.main.async {
+            guard let canvasView = context.coordinator.canvasView else { return }
+
+            toolPicker.setVisible(true, forFirstResponder: canvasView)
+
+            // If promptbar was editing text, canvas lost first responder.
+            // This safely restores it.
+            if !canvasView.isFirstResponder {
+                canvasView.becomeFirstResponder()
+            }
+
+            context.coordinator.toolPicker = toolPicker
+        }
     }
 
     func makeCoordinator() -> Coordinator {
