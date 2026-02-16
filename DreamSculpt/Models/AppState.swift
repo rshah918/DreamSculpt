@@ -17,6 +17,7 @@ class AppState: ObservableObject {
     // Session history - in-memory list of all generations this session
     @Published var sessionImages: [UIImage] = []
     @Published var sessionIndex: Int = 0
+    @Published var sessionId: String = UUID().uuidString
 
     // Prompt customization
     @Published var customPrompt: String {

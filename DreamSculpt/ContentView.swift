@@ -29,6 +29,7 @@ struct ContentView: View {
                             isLoading: $appState.isLoading,
                             baseImage: appState.baseImage,
                             showPaperTexture: appState.showPaperTexture,
+                            sessionId: appState.sessionId,
                             customPrompt: appState.customPrompt,
                             generationSettings: appState.generationSettings,
                             onGenerationComplete: { sketch, result in

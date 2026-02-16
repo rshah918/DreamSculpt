@@ -8,13 +8,14 @@ import UIKit
 import PencilKit
 
 // MARK: - Mock Mode Toggle (DELETE LATER)
-let USE_MOCK_GENERATION = true
+let USE_MOCK_GENERATION = false
 
 struct CanvasView: UIViewRepresentable {
     @Binding var generatedImage: UIImage?
     @Binding var isLoading: Bool
     var baseImage: UIImage?
     var showPaperTexture: Bool
+    var sessionId: String
     var customPrompt: String
     var generationSettings: GenerationSettings
     var onGenerationComplete: ((UIImage, UIImage) -> Void)?
@@ -246,7 +247,7 @@ struct CanvasView: UIViewRepresentable {
                     // MOCK: Generate a random gradient image after a short delay
                     result = await MockImageGenerator.generateRandomImage()
                 } else {
-                    result = await uploadDrawing(image: currentSketch, prompt: prompt, settings: settings)
+                    result = await uploadDrawing(image: currentSketch, prompt: prompt, settings: settings, sessionId: parent.sessionId)
                 }
 
                 if let result = result {
