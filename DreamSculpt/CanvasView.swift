@@ -20,13 +20,12 @@ struct CanvasView: UIViewRepresentable {
     var generationSettings: GenerationSettings
     var onGenerationComplete: ((UIImage, UIImage) -> Void)?
     var clearCanvasAction: (() -> Void)?
-    let toolPicker = PKToolPicker()
 
     func makeUIView(context: Context) -> UIView {
         let containerView = UIView()
         containerView.backgroundColor = .white
 
-        // Paper texture background view (layer behind everything)
+        // Paper texture
         let textureView = UIImageView()
         textureView.contentMode = .scaleAspectFill
         textureView.translatesAutoresizingMaskIntoConstraints = false
@@ -34,14 +33,14 @@ struct CanvasView: UIViewRepresentable {
         textureView.alpha = 0.15
         containerView.addSubview(textureView)
 
-        // Background image view (layer behind canvas)
+        // Background image
         let backgroundImageView = UIImageView()
         backgroundImageView.contentMode = .scaleAspectFit
         backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
         backgroundImageView.tag = 100
         containerView.addSubview(backgroundImageView)
 
-        // Canvas view on top
+        // Canvas
         let canvasView = PKCanvasView()
         canvasView.backgroundColor = .clear
         canvasView.isOpaque = false
@@ -49,15 +48,12 @@ struct CanvasView: UIViewRepresentable {
         canvasView.translatesAutoresizingMaskIntoConstraints = false
         canvasView.tag = 200
         containerView.addSubview(canvasView)
-        toolPicker.setVisible(true, forFirstResponder: canvasView)
-        toolPicker.addObserver(canvasView)
 
-        // Store references in coordinator
+        // Coordinator references
         context.coordinator.canvasView = canvasView
         context.coordinator.backgroundImageView = backgroundImageView
         context.coordinator.textureView = textureView
 
-        // Set delegate
         canvasView.delegate = context.coordinator
 
         // Constraints
@@ -78,7 +74,6 @@ struct CanvasView: UIViewRepresentable {
             canvasView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
         ])
 
-        // Set initial paper texture
         if showPaperTexture {
             textureView.image = PaperTextureGenerator.generate(size: CGSize(width: 512, height: 512))
         }
@@ -87,12 +82,12 @@ struct CanvasView: UIViewRepresentable {
     }
 
     func updateUIView(_ containerView: UIView, context: Context) {
-        // Update background image if changed
+        // Update background
         if let imageView = containerView.viewWithTag(100) as? UIImageView {
             imageView.image = baseImage
         }
 
-        // Update paper texture visibility
+        // Update paper texture
         if let textureView = containerView.viewWithTag(50) as? UIImageView {
             textureView.alpha = showPaperTexture ? 0.15 : 0
             if showPaperTexture && textureView.image == nil {
@@ -102,18 +97,17 @@ struct CanvasView: UIViewRepresentable {
 
         // Update coordinator reference
         context.coordinator.parent = self
-        
+
+        // Attach tool picker once canvas is in window
         DispatchQueue.main.async {
-            guard let canvasView = context.coordinator.canvasView else { return }
+            guard let canvasView = context.coordinator.canvasView,
+                  canvasView.window != nil,
+                  context.coordinator.toolPicker == nil else { return }
 
+            let toolPicker = PKToolPicker()
             toolPicker.setVisible(true, forFirstResponder: canvasView)
-
-            // If promptbar was editing text, canvas lost first responder.
-            // This safely restores it.
-            if !canvasView.isFirstResponder {
-                canvasView.becomeFirstResponder()
-            }
-
+            toolPicker.addObserver(canvasView)
+            canvasView.becomeFirstResponder()
             context.coordinator.toolPicker = toolPicker
         }
     }
@@ -136,8 +130,6 @@ struct CanvasView: UIViewRepresentable {
         init(_ parent: CanvasView) {
             self.parent = parent
             super.init()
-
-            // Start a timer to check for pending requests after strokes end
             checkTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
                 self?.checkAndSendPendingRequest()
             }
@@ -147,119 +139,40 @@ struct CanvasView: UIViewRepresentable {
             checkTimer?.invalidate()
         }
 
-        func getResizedImageMaintainingAspect(from drawing: PKDrawing, targetSize: CGSize = CGSize(width: 170.666666667, height: 170.666666667)) -> UIImage {
-            let originalImage = drawing.image(from: drawing.bounds, scale: 1.0)
-            let originalSize = originalImage.size
-
-            let widthRatio = targetSize.width / originalSize.width
-            let heightRatio = targetSize.height / originalSize.height
-            let scale = min(widthRatio, heightRatio)
-
-            let newSize = CGSize(width: originalSize.width * scale, height: originalSize.height * scale)
-            let origin = CGPoint(x: (targetSize.width - newSize.width) / 2,
-                                 y: (targetSize.height - newSize.height) / 2)
-
-            UIGraphicsBeginImageContextWithOptions(targetSize, false, 0)
-
-            UIColor.white.setFill()
-            UIRectFill(CGRect(origin: .zero, size: targetSize))
-
-            originalImage.draw(in: CGRect(origin: origin, size: newSize))
-
-            let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
-            UIGraphicsEndImageContext()
-
-            return resizedImage!
-        }
-
-        func getCompositeImage(from drawing: PKDrawing, targetSize: CGSize = CGSize(width: 170.666666667, height: 170.666666667)) -> UIImage {
-            UIGraphicsBeginImageContextWithOptions(targetSize, false, 0)
-
-            // Fill with white background
-            UIColor.white.setFill()
-            UIRectFill(CGRect(origin: .zero, size: targetSize))
-
-            // Draw background image if present
-            if let baseImage = parent.baseImage {
-                let baseSize = baseImage.size
-                let widthRatio = targetSize.width / baseSize.width
-                let heightRatio = targetSize.height / baseSize.height
-                let scale = min(widthRatio, heightRatio)
-                let newSize = CGSize(width: baseSize.width * scale, height: baseSize.height * scale)
-                let origin = CGPoint(x: (targetSize.width - newSize.width) / 2,
-                                     y: (targetSize.height - newSize.height) / 2)
-                baseImage.draw(in: CGRect(origin: origin, size: newSize))
-            }
-
-            // Draw the canvas strokes on top
-            if !drawing.bounds.isEmpty {
-                let drawingImage = drawing.image(from: drawing.bounds, scale: 1.0)
-                let drawingSize = drawingImage.size
-                let widthRatio = targetSize.width / drawingSize.width
-                let heightRatio = targetSize.height / drawingSize.height
-                let scale = min(widthRatio, heightRatio)
-                let newSize = CGSize(width: drawingSize.width * scale, height: drawingSize.height * scale)
-                let origin = CGPoint(x: (targetSize.width - newSize.width) / 2,
-                                     y: (targetSize.height - newSize.height) / 2)
-                drawingImage.draw(in: CGRect(origin: origin, size: newSize))
-            }
-
-            let compositeImage = UIGraphicsGetImageFromCurrentImageContext()
-            UIGraphicsEndImageContext()
-
-            return compositeImage!
-        }
-
         func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
-            // Always store the latest drawing
             pendingDrawing = canvasView.drawing
         }
 
         func canvasViewDidBeginUsingTool(_ canvasView: PKCanvasView) {
             debounceManager.strokeBegan()
         }
-        
+
         func canvasViewDidEndUsingTool(_ canvasView: PKCanvasView) {
             debounceManager.strokeEnded()
         }
-        
+
         private func checkAndSendPendingRequest() {
-            guard let drawing = pendingDrawing else { return }
-            guard !drawing.bounds.isEmpty else { return }
+            guard let drawing = pendingDrawing, !drawing.bounds.isEmpty else { return }
             guard debounceManager.shouldAllowRequest() else { return }
 
-            // Clear pending since we're sending
             pendingDrawing = nil
-
             let currentSketch = getCompositeImage(from: drawing)
             let prompt = parent.customPrompt
             let settings = parent.generationSettings
 
-            Task { @MainActor in
-                parent.isLoading = true
-                HapticManager.shared.generationStarted()
-            }
-
+            Task { @MainActor in parent.isLoading = true; HapticManager.shared.generationStarted() }
             Task {
-                let result: UIImage?
+                let result: UIImage? = USE_MOCK_GENERATION
+                    ? await MockImageGenerator.generateRandomImage()
+                    : await uploadDrawing(image: currentSketch, prompt: prompt, settings: settings, sessionId: parent.sessionId)
 
-                if USE_MOCK_GENERATION {
-                    // MOCK: Generate a random gradient image after a short delay
-                    result = await MockImageGenerator.generateRandomImage()
-                } else {
-                    result = await uploadDrawing(image: currentSketch, prompt: prompt, settings: settings, sessionId: parent.sessionId)
-                }
-
-                if let result = result {
-                    await MainActor.run {
-                        self.parent.generatedImage = result
-                        self.parent.isLoading = false
-                        self.parent.onGenerationComplete?(currentSketch, result)
+                await MainActor.run {
+                    parent.isLoading = false
+                    if let result = result {
+                        parent.generatedImage = result
+                        parent.onGenerationComplete?(currentSketch, result)
                         HapticManager.shared.generationCompleted()
-                    }
-                } else {
-                    await MainActor.run {
-                        self.parent.isLoading = false
+                    } else {
                         HapticManager.shared.generationFailed()
                     }
                 }
@@ -270,8 +183,35 @@ struct CanvasView: UIViewRepresentable {
             canvasView?.drawing = PKDrawing()
             pendingDrawing = nil
         }
+
+        // MARK: - Image helpers
+        func getCompositeImage(from drawing: PKDrawing, targetSize: CGSize = CGSize(width: 170.666, height: 170.666)) -> UIImage {
+            UIGraphicsBeginImageContextWithOptions(targetSize, false, 0)
+            UIColor.white.setFill()
+            UIRectFill(CGRect(origin: .zero, size: targetSize))
+
+            if let baseImage = parent.baseImage {
+                let scale = min(targetSize.width/baseImage.size.width, targetSize.height/baseImage.size.height)
+                let newSize = CGSize(width: baseImage.size.width*scale, height: baseImage.size.height*scale)
+                let origin = CGPoint(x: (targetSize.width-newSize.width)/2, y: (targetSize.height-newSize.height)/2)
+                baseImage.draw(in: CGRect(origin: origin, size: newSize))
+            }
+
+            if !drawing.bounds.isEmpty {
+                let drawingImage = drawing.image(from: drawing.bounds, scale: 1.0)
+                let scale = min(targetSize.width/drawingImage.size.width, targetSize.height/drawingImage.size.height)
+                let newSize = CGSize(width: drawingImage.size.width*scale, height: drawingImage.size.height*scale)
+                let origin = CGPoint(x: (targetSize.width-newSize.width)/2, y: (targetSize.height-newSize.height)/2)
+                drawingImage.draw(in: CGRect(origin: origin, size: newSize))
+            }
+
+            let compositeImage = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            return compositeImage!
+        }
     }
 }
+
 
 // MARK: - Mock Image Generator (DELETE LATER)
 enum MockImageGenerator {
