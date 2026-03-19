@@ -10,6 +10,11 @@ struct ContentView: View {
     @State private var previewOffset: CGSize = .zero
     @State private var isExpanded: Bool = false
     @State private var isPromptBarExpanded: Bool = false
+    @State private var hasCanvasDrawing: Bool = false
+    @State private var generateAction: (() -> Void)?
+    @State private var requestCanvasFocus: (() -> Void)?
+    @State private var undoAction: (() -> Void)?
+    @State private var resignCanvasFocus: (() -> Void)?
 
     var body: some View {
         GeometryReader { geo in
@@ -34,7 +39,14 @@ struct ContentView: View {
                             generationSettings: appState.generationSettings,
                             onGenerationComplete: { sketch, result in
                                 appState.addToHistory(sketch: sketch, result: result)
-                            }
+                            },
+                            triggerGeneration: $generateAction,
+                            onDrawingChanged: { hasDrawing in
+                                hasCanvasDrawing = hasDrawing
+                            },
+                            requestFocus: $requestCanvasFocus,
+                            undoAction: $undoAction,
+                            resignFocus: $resignCanvasFocus
                         )
                         .clipShape(RoundedCorner(radius: 16, corners: [.topLeft, .topRight]))
                         .shadow(color: .black.opacity(0.3), radius: 12, y: -4)
@@ -42,7 +54,13 @@ struct ContentView: View {
                         // Prompt bar overlay at bottom
                         VStack {
                             Spacer()
-                            PromptBar(isExpanded: $isPromptBarExpanded)
+                            PromptBar(
+                                isExpanded: $isPromptBarExpanded,
+                                hasDrawing: hasCanvasDrawing,
+                                onGenerate: { generateAction?() },
+                                onCollapse: { requestCanvasFocus?() },
+                                onUndo: { undoAction?() }
+                            )
                         }
                     }
                     .ignoresSafeArea(edges: .bottom)
@@ -74,6 +92,13 @@ struct ContentView: View {
             .frame(width: geo.size.width, height: geo.size.height)
         }
         .ignoresSafeArea(edges: .bottom)
+        .onChange(of: appState.isDrawerOpen) { _, isOpen in
+            if isOpen {
+                resignCanvasFocus?()
+            } else {
+                requestCanvasFocus?()
+            }
+        }
     }
 }
 

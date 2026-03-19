@@ -23,7 +23,7 @@ struct APIResponseSchema: Decodable {
 }
 
 func uploadDrawing(image: UIImage, prompt: String, settings: GenerationSettings, sessionId: String) async -> UIImage? {
-    let url = URL(string: "http://127.0.0.1:8000/generate")
+    let url = URL(string: "https://13.221.123.53.sslip.io/generate")
     let body = ImageRequest(image: image, prompt: prompt)
     do {
         let jsonData = try JSONEncoder().encode(body)

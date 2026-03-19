@@ -128,27 +128,6 @@ struct HistoryDrawer: View {
                 .foregroundColor(ColorPalette.textMuted)
                 .padding(.horizontal, 16)
 
-            // Paper texture toggle
-            HStack {
-                Image(systemName: "doc.text.fill")
-                    .font(.system(size: 14))
-                    .foregroundColor(ColorPalette.textSecondary)
-
-                Text("Paper Texture")
-                    .font(.subheadline)
-                    .foregroundColor(ColorPalette.textPrimary)
-
-                Spacer()
-
-                Toggle("", isOn: $appState.showPaperTexture)
-                    .tint(ColorPalette.primary)
-                    .scaleEffect(0.8)
-                    .onChange(of: appState.showPaperTexture) { _, _ in
-                        HapticManager.shared.lightTap()
-                    }
-            }
-            .padding(.horizontal, 16)
-
             // Generation preset selector
             HStack(spacing: 8) {
                 Text("Quality:")

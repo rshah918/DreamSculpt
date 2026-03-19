@@ -12,40 +12,74 @@ struct PromptBar: View {
     @State private var editingPrompt: String = ""
     @State private var pulseAnimation: Bool = false
 
+    var hasDrawing: Bool = false
+    var onGenerate: () -> Void = {}
+    var onCollapse: () -> Void = {}
+    var onUndo: () -> Void = {}
+
     var body: some View {
-        VStack(spacing: 0) {
-            if isExpanded {
-                expandedView
-            } else {
-                collapsedView
+        VStack(spacing: 12) {
+            // Action buttons above the prompt bar
+            if !isExpanded {
+                HStack(spacing: 12) {
+                    Spacer()
+
+                    // Undo button
+                    Button {
+                        HapticManager.shared.lightTap()
+                        onUndo()
+                    } label: {
+                        Image(systemName: "arrow.uturn.backward")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 40, height: 40)
+                            .background(Color.black.opacity(0.6))
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
+                    }
+
+                    GenerateButton(hasDrawing: hasDrawing, onTrigger: onGenerate)
+                }
             }
+
+            // Prompt bar
+            VStack(spacing: 0) {
+                if isExpanded {
+                    expandedView
+                } else {
+                    collapsedView
+                }
+            }
+            .background(
+                // Glow effect behind the bar
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(ColorPalette.primary.opacity(0.15))
+                    .blur(radius: 20)
+                    .scaleEffect(pulseAnimation ? 1.05 : 1.0)
+            )
+            .background(
+                // Solid background
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.black.opacity(0.7))
+            )
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(
+                        LinearGradient(
+                            colors: [ColorPalette.primary.opacity(0.5), ColorPalette.accent.opacity(0.3), ColorPalette.primary.opacity(0.2)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: ColorPalette.primary.opacity(0.2), radius: 15, x: 0, y: 5)
         }
-        .background(
-            // Glow effect behind the bar
-            RoundedRectangle(cornerRadius: 20)
-                .fill(ColorPalette.primary.opacity(0.15))
-                .blur(radius: 20)
-                .scaleEffect(pulseAnimation ? 1.05 : 1.0)
-        )
-        .background(
-            // Solid background
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color.black.opacity(0.7))
-        )
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(
-                    LinearGradient(
-                        colors: [ColorPalette.primary.opacity(0.5), ColorPalette.accent.opacity(0.3), ColorPalette.primary.opacity(0.2)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-        )
-        .shadow(color: ColorPalette.primary.opacity(0.2), radius: 15, x: 0, y: 5)
         .padding(.horizontal, 16)
         .padding(.bottom, 140) // Extra padding to stay above tool picker
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isExpanded)
@@ -67,14 +101,14 @@ struct PromptBar: View {
             HapticManager.shared.lightTap()
             isExpanded = true
         } label: {
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 // Sparkle icon with gradient
                 Image(systemName: "sparkles")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(ColorPalette.gradientPrimary)
 
-                Text(appState.hasCustomPrompt ? truncatedPrompt : "Tap to customize your prompt...")
-                    .font(.subheadline)
+                Text(appState.hasCustomPrompt ? truncatedPrompt : "Tap to customize prompt...")
+                    .font(.caption)
                     .foregroundColor(appState.hasCustomPrompt ? ColorPalette.textPrimary : ColorPalette.textSecondary)
                     .lineLimit(1)
 
@@ -84,16 +118,16 @@ struct PromptBar: View {
                 HStack(spacing: 4) {
                     if !appState.hasCustomPrompt {
                         Text("Edit")
-                            .font(.caption.weight(.medium))
+                            .font(.caption2.weight(.medium))
                             .foregroundColor(ColorPalette.primary)
                     }
                     Image(systemName: "chevron.up.circle.fill")
-                        .font(.system(size: 20))
+                        .font(.system(size: 18))
                         .foregroundStyle(ColorPalette.gradientPrimary)
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 16)
+            .padding(.vertical, 12)
         }
     }
 
@@ -113,6 +147,9 @@ struct PromptBar: View {
                     HapticManager.shared.lightTap()
                     isTextFieldFocused = false
                     isExpanded = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        onCollapse()
+                    }
                 } label: {
                     Image(systemName: "chevron.down")
                         .font(.system(size: 12, weight: .semibold))
@@ -187,6 +224,9 @@ struct PromptBar: View {
                     appState.customPrompt = editingPrompt
                     isTextFieldFocused = false
                     isExpanded = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        onCollapse()
+                    }
                 } label: {
                     HStack(spacing: 6) {
                         Text("Apply")

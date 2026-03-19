@@ -37,7 +37,7 @@ struct AuroraHeader: View {
 
             // Layer 5: Content
             VStack(spacing: 0) {
-                HStack(spacing: 12) {
+                HStack(alignment: .center, spacing: 12) {
                     // Left: Menu button
                     HamburgerMenuButton(isOpen: $appState.isDrawerOpen)
 
@@ -49,7 +49,7 @@ struct AuroraHeader: View {
                     actionButtons
                 }
                 .padding(.horizontal, 16)
-                .padding(.top, 4)
+                .padding(.top, 8)
 
                 Spacer()
 
@@ -71,7 +71,7 @@ struct AuroraHeader: View {
                     .blur(radius: 1)
             }
         }
-        .frame(height: 80)
+        .frame(height: 100)
         .onAppear {
             startAnimations()
         }
@@ -168,7 +168,7 @@ struct AuroraHeader: View {
     // MARK: - Action Buttons
     private var actionButtons: some View {
         HStack(spacing: 8) {
-            LoadImageButton(selectedImage: $appState.baseImage)
+            LoadImageButton()
 
             if appState.baseImage != nil {
                 clearImageButton
@@ -180,13 +180,13 @@ struct AuroraHeader: View {
         Button {
             HapticManager.shared.lightTap()
             withAnimation {
-                appState.baseImage = nil
+                appState.setBaseImage(nil)
             }
         } label: {
             Image(systemName: "xmark")
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.white)
-                .frame(width: 44, height: 44)
+                .frame(width: 36, height: 36)
                 .background(
                     LinearGradient(
                         colors: [Color.red.opacity(0.8), Color.red.opacity(0.6)],
@@ -194,8 +194,8 @@ struct AuroraHeader: View {
                         endPoint: .bottomTrailing
                     )
                 )
-                .cornerRadius(12)
-                .shadow(color: Color.red.opacity(0.3), radius: 8, x: 0, y: 4)
+                .cornerRadius(10)
+                .shadow(color: Color.red.opacity(0.3), radius: 6, x: 0, y: 3)
         }
     }
 

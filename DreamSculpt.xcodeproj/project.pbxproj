@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5517DF322F54EACB00AA7587 /* GenerateButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5517DF312F54EACB00AA7587 /* GenerateButton.swift */; };
 		55F51B762E64BF8A00E69011 /* DreamSculptApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B752E64BF8A00E69011 /* DreamSculptApp.swift */; };
 		55F51B782E64BF8A00E69011 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B772E64BF8A00E69011 /* ContentView.swift */; };
 		55F51B7A2E64BF8B00E69011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55F51B792E64BF8B00E69011 /* Assets.xcassets */; };
@@ -54,6 +55,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5517DF312F54EACB00AA7587 /* GenerateButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenerateButton.swift; sourceTree = "<group>"; };
 		55F51B722E64BF8A00E69011 /* DreamSculpt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DreamSculpt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		55F51B752E64BF8A00E69011 /* DreamSculptApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DreamSculptApp.swift; sourceTree = "<group>"; };
 		55F51B772E64BF8A00E69011 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -138,7 +140,6 @@
 				55F51BAB2E66000000E69011 /* Managers */,
 				55F51BAC2E66000000E69011 /* Views */,
 				55F51BAD2E66000000E69011 /* Utilities */,
-				55F51BA22E650D7C00E69011 /* Preview Content */,
 				55F51B752E64BF8A00E69011 /* DreamSculptApp.swift */,
 				55F51B772E64BF8A00E69011 /* ContentView.swift */,
 				55F51B9F2E65057A00E69011 /* CanvasView.swift */,
@@ -165,13 +166,6 @@
 			path = DreamSculptUITests;
 			sourceTree = "<group>";
 		};
-		55F51BA22E650D7C00E69011 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "Preview Content";
-			sourceTree = "<group>";
-		};
 		55F51BAA2E66000000E69011 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -195,6 +189,7 @@
 		55F51BAC2E66000000E69011 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				5517DF312F54EACB00AA7587 /* GenerateButton.swift */,
 				55F51BBB2E66000600E69011 /* HamburgerMenuButton.swift */,
 				55F51BBD2E66000700E69011 /* HistoryDrawer.swift */,
 				55F51BBF2E66000800E69011 /* HistoryThumbnailCard.swift */,
@@ -370,6 +365,7 @@
 				55F51BCE2E66100300E69011 /* SettingsPanel.swift in Sources */,
 				55F51BD02E66200000E69011 /* SplashView.swift in Sources */,
 				55F51BD22E66200100E69011 /* CanvasHeader.swift in Sources */,
+				5517DF322F54EACB00AA7587 /* GenerateButton.swift in Sources */,
 				55F51BD42E66300000E69011 /* RoundedCorner.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -533,7 +529,6 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"DreamSculpt/Preview Content\"";
 				DEVELOPMENT_TEAM = YQKQ6M73X5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -562,7 +557,6 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"DreamSculpt/Preview Content\"";
 				DEVELOPMENT_TEAM = YQKQ6M73X5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;

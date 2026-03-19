@@ -48,10 +48,10 @@ struct AIPreviewPanel: View {
 
     private func previewContent(geo: GeometryProxy) -> some View {
         let previewSize: CGFloat = isExpanded ? min(geo.size.width - 40, geo.size.height - 200) : 130
-        // Default position: bottom-right corner of canvas (below header, above toolbar)
+        // Default position: top-right corner of canvas (below header)
         let position = isExpanded
             ? CGPoint(x: geo.size.width / 2, y: geo.size.height / 2 - 40)
-            : CGPoint(x: geo.size.width - 85, y: 185)
+            : CGPoint(x: geo.size.width - 85, y: 170)
 
         return VStack(spacing: 16) {
             ZStack {

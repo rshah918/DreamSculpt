@@ -40,10 +40,14 @@ class AppState: ObservableObject {
     Transform this rough sketch into an awe-inspiring, photorealistic image. Use the sketch only as a structural guide for composition and proportions. Add realistic depth, dramatic lighting, and atmospheric effects such as reflections, sky, and shadows, so the scene feels immersive and cinematic. The final result should look like a stunning photograph, true to the layout of the sketch but elevated into a vivid, breathtaking real-world scene
     """
 
+
     // Track if we've had at least one generation
     var hasGeneratedImage: Bool {
         !sessionImages.isEmpty
     }
+
+    // Track the prompt before image was loaded (to restore later)
+    private var promptBeforeImageEdit: String? = nil
 
     var hasCustomPrompt: Bool {
         customPrompt != Self.defaultPrompt
@@ -74,14 +78,31 @@ class AppState: ObservableObject {
         }
     }
 
+    var currentDefaultPrompt: String {
+        if (baseImage != nil) {
+            applyStylePreset(StylePreset.photorealistic)
+            return customPrompt
+        }
+        else{
+            return Self.defaultPrompt
+        }
+    }
+
     func resetPromptToDefault() {
-        customPrompt = Self.defaultPrompt
+        customPrompt = currentDefaultPrompt
         selectedStylePreset = nil
     }
 
     func applyStylePreset(_ preset: StylePreset) {
         selectedStylePreset = preset
-        customPrompt = "Transform this sketch into: \(preset.promptSnippet)"
+        if baseImage != nil {
+            // Image edit mode - style presets modify how the edit is applied
+            customPrompt = "Edit the base image using the sketch as a guide. Apply the edit in a \(preset.promptSnippet) style. Blend changes seamlessly with the original image."
+            
+        } else {
+            // Sketch to image mode
+            customPrompt = "Transform this sketch into: \(preset.promptSnippet)"
+        }
     }
 
     func loadHistory() {
@@ -111,7 +132,30 @@ class AppState: ObservableObject {
     }
 
     func setBaseImage(_ image: UIImage?) {
+        let hadImage = baseImage != nil
+        let willHaveImage = image != nil
+
         baseImage = image
+
+        // Auto-switch prompt based on whether we have a base image
+        if willHaveImage && !hadImage {
+            // Switching to image edit mode - save current prompt and switch
+            if customPrompt == Self.defaultPrompt {
+                promptBeforeImageEdit = nil
+            } else {
+                promptBeforeImageEdit = customPrompt
+            }
+            applyStylePreset(StylePreset.photorealistic)
+        } else if !willHaveImage && hadImage {
+            // Removing image - restore previous prompt
+            if let savedPrompt = promptBeforeImageEdit {
+                customPrompt = savedPrompt
+            } else {
+                customPrompt = Self.defaultPrompt
+            }
+            promptBeforeImageEdit = nil
+            selectedStylePreset = nil
+        }
     }
 
     func setSessionIndex(_ index: Int) {

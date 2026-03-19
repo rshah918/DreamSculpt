@@ -20,6 +20,11 @@ struct CanvasView: UIViewRepresentable {
     var generationSettings: GenerationSettings
     var onGenerationComplete: ((UIImage, UIImage) -> Void)?
     var clearCanvasAction: (() -> Void)?
+    @Binding var triggerGeneration: (() -> Void)?
+    var onDrawingChanged: ((Bool) -> Void)?
+    @Binding var requestFocus: (() -> Void)?
+    @Binding var undoAction: (() -> Void)?
+    @Binding var resignFocus: (() -> Void)?
 
     func makeUIView(context: Context) -> UIView {
         let containerView = UIView()
@@ -125,22 +130,34 @@ struct CanvasView: UIViewRepresentable {
 
         private let debounceManager = DebounceManager.shared
         private var pendingDrawing: PKDrawing?
-        private var checkTimer: Timer?
 
         init(_ parent: CanvasView) {
             self.parent = parent
             super.init()
-            checkTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-                self?.checkAndSendPendingRequest()
-            }
-        }
 
-        deinit {
-            checkTimer?.invalidate()
+            // Wire up external triggers
+            Task { @MainActor in
+                self.parent.triggerGeneration = { [weak self] in
+                    self?.performGeneration()
+                }
+                self.parent.requestFocus = { [weak self] in
+                    self?.canvasView?.becomeFirstResponder()
+                }
+                self.parent.undoAction = { [weak self] in
+                    self?.canvasView?.undoManager?.undo()
+                }
+                self.parent.resignFocus = { [weak self] in
+                    self?.canvasView?.resignFirstResponder()
+                }
+            }
         }
 
         func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
             pendingDrawing = canvasView.drawing
+            let hasDrawing = !canvasView.drawing.bounds.isEmpty
+            Task { @MainActor in
+                parent.onDrawingChanged?(hasDrawing)
+            }
         }
 
         func canvasViewDidBeginUsingTool(_ canvasView: PKCanvasView) {
@@ -151,20 +168,29 @@ struct CanvasView: UIViewRepresentable {
             debounceManager.strokeEnded()
         }
 
-        private func checkAndSendPendingRequest() {
-            guard let drawing = pendingDrawing, !drawing.bounds.isEmpty else { return }
+        func performGeneration() {
+            guard let drawing = pendingDrawing else { return }
+            guard !drawing.bounds.isEmpty else { return }
             guard debounceManager.shouldAllowRequest() else { return }
 
-            pendingDrawing = nil
             let currentSketch = getCompositeImage(from: drawing)
             let prompt = parent.customPrompt
             let settings = parent.generationSettings
+            let sessionId = parent.sessionId
 
-            Task { @MainActor in parent.isLoading = true; HapticManager.shared.generationStarted() }
+            Task { @MainActor in
+                parent.isLoading = true
+                HapticManager.shared.generationStarted()
+            }
+
             Task {
-                let result: UIImage? = USE_MOCK_GENERATION
-                    ? await MockImageGenerator.generateRandomImage()
-                    : await uploadDrawing(image: currentSketch, prompt: prompt, settings: settings, sessionId: parent.sessionId)
+                let result: UIImage?
+
+                if USE_MOCK_GENERATION {
+                    result = await MockImageGenerator.generateRandomImage()
+                } else {
+                    result = await uploadDrawing(image: currentSketch, prompt: prompt, settings: settings, sessionId: sessionId)
+                }
 
                 await MainActor.run {
                     parent.isLoading = false
@@ -184,7 +210,6 @@ struct CanvasView: UIViewRepresentable {
             pendingDrawing = nil
         }
 
-        // MARK: - Image helpers
         func getCompositeImage(from drawing: PKDrawing, targetSize: CGSize = CGSize(width: 170.666, height: 170.666)) -> UIImage {
             UIGraphicsBeginImageContextWithOptions(targetSize, false, 0)
             UIColor.white.setFill()
@@ -211,7 +236,6 @@ struct CanvasView: UIViewRepresentable {
         }
     }
 }
-
 
 // MARK: - Mock Image Generator (DELETE LATER)
 enum MockImageGenerator {
