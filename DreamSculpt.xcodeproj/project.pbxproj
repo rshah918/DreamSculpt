@@ -55,6 +55,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5511CE3D2F6EEED1008D5C5E /* notes.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = notes.md; sourceTree = "<group>"; };
 		5517DF312F54EACB00AA7587 /* GenerateButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenerateButton.swift; sourceTree = "<group>"; };
 		55F51B722E64BF8A00E69011 /* DreamSculpt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DreamSculpt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		55F51B752E64BF8A00E69011 /* DreamSculptApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DreamSculptApp.swift; sourceTree = "<group>"; };
@@ -145,6 +146,7 @@
 				55F51B9F2E65057A00E69011 /* CanvasView.swift */,
 				55F51B792E64BF8B00E69011 /* Assets.xcassets */,
 				55F51BA52E653A6000E69011 /* APIClient.swift */,
+				5511CE3D2F6EEED1008D5C5E /* notes.md */,
 			);
 			path = DreamSculpt;
 			sourceTree = "<group>";
