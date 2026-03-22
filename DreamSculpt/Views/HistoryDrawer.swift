@@ -57,15 +57,6 @@ struct HistoryDrawer: View {
         VStack(alignment: .leading, spacing: 0) {
             drawerHeader
 
-            Divider()
-                .background(ColorPalette.glassBorder)
-
-            // Quick settings section
-            quickSettingsSection
-
-            Divider()
-                .background(ColorPalette.glassBorder)
-
             if appState.history.isEmpty {
                 emptyState
             } else {
@@ -121,39 +112,6 @@ struct HistoryDrawer: View {
         .padding(.top, 8)
     }
 
-    private var quickSettingsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Quick Settings")
-                .font(.caption)
-                .foregroundColor(ColorPalette.textMuted)
-                .padding(.horizontal, 16)
-
-            // Generation preset selector
-            HStack(spacing: 8) {
-                Text("Quality:")
-                    .font(.caption)
-                    .foregroundColor(ColorPalette.textMuted)
-
-                QuickPresetButton(title: "Fast", isSelected: appState.generationSettings == .fast) {
-                    HapticManager.shared.lightTap()
-                    appState.generationSettings = .fast
-                }
-
-                QuickPresetButton(title: "Balanced", isSelected: appState.generationSettings == .balanced) {
-                    HapticManager.shared.lightTap()
-                    appState.generationSettings = .balanced
-                }
-
-                QuickPresetButton(title: "Quality", isSelected: appState.generationSettings == .quality) {
-                    HapticManager.shared.lightTap()
-                    appState.generationSettings = .quality
-                }
-            }
-            .padding(.horizontal, 16)
-        }
-        .padding(.vertical, 12)
-    }
-
     private var emptyState: some View {
         VStack(spacing: 16) {
             Spacer()
@@ -194,32 +152,6 @@ struct HistoryDrawer: View {
                 }
             }
             .padding()
-        }
-    }
-}
-
-struct QuickPresetButton: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption.weight(.medium))
-                .foregroundColor(isSelected ? .white : ColorPalette.textSecondary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(
-                    Group {
-                        if isSelected {
-                            ColorPalette.primary
-                        } else {
-                            Color.white.opacity(0.08)
-                        }
-                    }
-                )
-                .cornerRadius(6)
         }
     }
 }

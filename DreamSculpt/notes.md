@@ -9,7 +9,7 @@ Goal for today:
     - SwiftUI vs UIKit
     - Stacks: VStack, HStack, VStack
         - How space is allocated to child elements
-    - @State and @Binding
+    - @State, @Binding, @EnvironmentObject
     - what the fuck is a coodinator
 
 Fundamental UI object is a View()
@@ -48,3 +48,57 @@ ZStack: Stack UI elements from base to top
 
 @State: persists a value, usually representing some local state, across View recreations
 @Binding: superset of state: Use when said state variable needs to be updateable from the child view
+
+@ObservableObject: A protocol that allows a class to notify views when its data changes
+    
+    class DemoObservableObject: ObservableObject {
+        @Published var someStateVariable: Bool = false // @Published variables will notify all subscribed views when its value updates
+    }
+    
+    struct contentView: View {
+    @StateObject var oo: DemoObservableObject = DemoObservableObject() //the stateobject annotation is for the view creating and owning to the observable object
+    var body: some View {
+        oo.someStateVariable = true //all views get regenerated when someStateVariable changes
+    }
+}
+
+    struct someView: View {
+        @ObservedObject var oo: DemoObservableObject // this view subscribes to the observableobject and will get regenerated when its value changes
+    }
+
+@EnvironmentObject: Used to pass observable objects deep within view hierarchies without having to manually pass it in
+    - In the parent view, do .environmentObject(oo)
+    - In any child view, do 
+        @EnvironmentObject var: DemoObservableObject
+
+
+### 3/22/2026
+Goals for today:
+    - Delete useless settings:
+        - paper texture toggle
+        - Model inference configs
+        - history drawer quick settings
+
+    - Learnings:
+        - .sheet vs .onTapGesture for modal visibility
+        - Modifier vs Property
+
+Modifier: A method that returns a new view with a modification applied
+    - Chainable
+Property: A stored attribute usually used to configure an existing view 
+
+Standard approach to toggle modal is to pass a state boolean to the base views .sheet modifier. The method body should contain the view of the Modal.
+
+struct someView: View {
+    @State var triggerModal: Bool = false
+...
+}
+    .sheet(isPresented: $triggerModal) {
+        ModalView()
+    }
+
+One question I had was why not trigger modals via the .onTapGesture modifier instead of a Button(). 
+    - Button provides better accessibility support
+        - Automatic Voiceover integration
+    - Button provides built in gesture handling and press-depress animation
+    

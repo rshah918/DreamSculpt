@@ -17,9 +17,7 @@ struct SettingsPanel: View {
 
                 ScrollView {
                     VStack(spacing: 24) {
-                        generationSettingsSection
                         presetsSection
-                        canvasAppearanceSection
                     }
                     .padding()
                 }
@@ -38,45 +36,6 @@ struct SettingsPanel: View {
         }
     }
 
-    private var generationSettingsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            sectionHeader("Generation Settings")
-
-            VStack(spacing: 20) {
-                // Steps slider
-                SettingsSlider(
-                    title: "Steps",
-                    value: Binding(
-                        get: { Double(appState.generationSettings.steps) },
-                        set: { appState.generationSettings.steps = Int($0) }
-                    ),
-                    range: 1...20,
-                    step: 1,
-                    description: "More steps = higher quality, slower generation"
-                )
-
-                // Denoising slider
-                SettingsSlider(
-                    title: "Denoising Strength",
-                    value: $appState.generationSettings.denoisingStrength,
-                    range: 0.3...1.0,
-                    step: 0.05,
-                    description: "Higher = more creative interpretation"
-                )
-
-                // CFG Scale slider
-                SettingsSlider(
-                    title: "CFG Scale",
-                    value: $appState.generationSettings.cfgScale,
-                    range: 1...20,
-                    step: 0.5,
-                    description: "Higher = follows prompt more closely"
-                )
-            }
-            .padding()
-            .glassmorphic(cornerRadius: 16)
-        }
-    }
 
     private var presetsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -110,34 +69,6 @@ struct SettingsPanel: View {
                     appState.generationSettings = .quality
                 }
             }
-        }
-    }
-
-    private var canvasAppearanceSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            sectionHeader("Canvas Appearance")
-
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Paper Texture")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundColor(ColorPalette.textPrimary)
-
-                    Text("Adds subtle texture to canvas background")
-                        .font(.caption)
-                        .foregroundColor(ColorPalette.textMuted)
-                }
-
-                Spacer()
-
-                Toggle("", isOn: $appState.showPaperTexture)
-                    .tint(ColorPalette.primary)
-                    .onChange(of: appState.showPaperTexture) { _, _ in
-                        HapticManager.shared.lightTap()
-                    }
-            }
-            .padding()
-            .glassmorphic(cornerRadius: 16)
         }
     }
 
