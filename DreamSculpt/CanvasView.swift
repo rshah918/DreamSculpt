@@ -14,7 +14,6 @@ struct CanvasView: UIViewRepresentable {
     @Binding var generatedImage: UIImage?
     @Binding var isLoading: Bool
     var baseImage: UIImage?
-    var showPaperTexture: Bool
     var sessionId: String
     var customPrompt: String
     var generationSettings: GenerationSettings
@@ -29,14 +28,6 @@ struct CanvasView: UIViewRepresentable {
     func makeUIView(context: Context) -> UIView {
         let containerView = UIView()
         containerView.backgroundColor = .white
-
-        // Paper texture
-        let textureView = UIImageView()
-        textureView.contentMode = .scaleAspectFill
-        textureView.translatesAutoresizingMaskIntoConstraints = false
-        textureView.tag = 50
-        textureView.alpha = 0.15
-        containerView.addSubview(textureView)
 
         // Background image
         let backgroundImageView = UIImageView()
@@ -57,17 +48,11 @@ struct CanvasView: UIViewRepresentable {
         // Coordinator references
         context.coordinator.canvasView = canvasView
         context.coordinator.backgroundImageView = backgroundImageView
-        context.coordinator.textureView = textureView
 
         canvasView.delegate = context.coordinator
 
         // Constraints
         NSLayoutConstraint.activate([
-            textureView.topAnchor.constraint(equalTo: containerView.topAnchor),
-            textureView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
-            textureView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            textureView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
-
             backgroundImageView.topAnchor.constraint(equalTo: containerView.topAnchor),
             backgroundImageView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             backgroundImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
@@ -79,10 +64,6 @@ struct CanvasView: UIViewRepresentable {
             canvasView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor)
         ])
 
-        if showPaperTexture {
-            textureView.image = PaperTextureGenerator.generate(size: CGSize(width: 512, height: 512))
-        }
-
         return containerView
     }
 
@@ -90,14 +71,6 @@ struct CanvasView: UIViewRepresentable {
         // Update background
         if let imageView = containerView.viewWithTag(100) as? UIImageView {
             imageView.image = baseImage
-        }
-
-        // Update paper texture
-        if let textureView = containerView.viewWithTag(50) as? UIImageView {
-            textureView.alpha = showPaperTexture ? 0.15 : 0
-            if showPaperTexture && textureView.image == nil {
-                textureView.image = PaperTextureGenerator.generate(size: CGSize(width: 512, height: 512))
-            }
         }
 
         // Update coordinator reference
@@ -287,50 +260,6 @@ enum MockImageGenerator {
             } else {
                 context.fill(rect)
             }
-        }
-
-        let image = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-
-        return image
-    }
-}
-
-// MARK: - Paper Texture Generator
-enum PaperTextureGenerator {
-    static func generate(size: CGSize) -> UIImage? {
-        UIGraphicsBeginImageContextWithOptions(size, true, 1.0)
-        guard let context = UIGraphicsGetCurrentContext() else { return nil }
-
-        // Off-white base color
-        let baseColor = UIColor(red: 0.98, green: 0.97, blue: 0.95, alpha: 1.0)
-        context.setFillColor(baseColor.cgColor)
-        context.fill(CGRect(origin: .zero, size: size))
-
-        // Add noise pattern for paper texture
-        for _ in 0..<Int(size.width * size.height / 50) {
-            let x = CGFloat.random(in: 0...size.width)
-            let y = CGFloat.random(in: 0...size.height)
-            let dotSize = CGFloat.random(in: 0.5...2.0)
-
-            let grayValue = CGFloat.random(in: 0.85...0.95)
-            let dotColor = UIColor(white: grayValue, alpha: CGFloat.random(in: 0.1...0.3))
-            context.setFillColor(dotColor.cgColor)
-            context.fillEllipse(in: CGRect(x: x, y: y, width: dotSize, height: dotSize))
-        }
-
-        // Add subtle fiber lines
-        for _ in 0..<20 {
-            let startX = CGFloat.random(in: 0...size.width)
-            let startY = CGFloat.random(in: 0...size.height)
-            let endX = startX + CGFloat.random(in: -30...30)
-            let endY = startY + CGFloat.random(in: -5...5)
-
-            context.setStrokeColor(UIColor(white: 0.9, alpha: 0.2).cgColor)
-            context.setLineWidth(0.5)
-            context.move(to: CGPoint(x: startX, y: startY))
-            context.addLine(to: CGPoint(x: endX, y: endY))
-            context.strokePath()
         }
 
         let image = UIGraphicsGetImageFromCurrentImageContext()

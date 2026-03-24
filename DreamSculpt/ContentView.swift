@@ -33,7 +33,6 @@ struct ContentView: View {
                             generatedImage: $appState.currentPreviewImage,
                             isLoading: $appState.isLoading,
                             baseImage: appState.baseImage,
-                            showPaperTexture: appState.showPaperTexture,
                             sessionId: appState.sessionId,
                             customPrompt: appState.customPrompt,
                             generationSettings: appState.generationSettings,

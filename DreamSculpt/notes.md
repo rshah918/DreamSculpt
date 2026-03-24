@@ -9,7 +9,7 @@ Goal for today:
     - SwiftUI vs UIKit
     - Stacks: VStack, HStack, VStack
         - How space is allocated to child elements
-    - @State, @Binding, @EnvironmentObject
+    - @State, @Binding, @EnvironmentObject, @ObservableObject, @Published, @ObservedObject, @StateObject
     - what the fuck is a coodinator
 
 Fundamental UI object is a View()
