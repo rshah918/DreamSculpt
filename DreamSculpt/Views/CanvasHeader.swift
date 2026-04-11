@@ -71,7 +71,7 @@ struct AuroraHeader: View {
                     .blur(radius: 1)
             }
         }
-        .frame(height: 100)
+        .frame(height: 110)
         .onAppear {
             startAnimations()
         }
@@ -105,7 +105,7 @@ struct AuroraHeader: View {
         ZStack {
             // Glow behind text
             Text("DreamSculpt")
-                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .font(.system(size: 26, weight: .bold, design: .rounded))
                 .foregroundColor(ColorPalette.primary)
                 .blur(radius: glowPulse ? 18 : 12)
                 .opacity(0.5)
@@ -141,7 +141,7 @@ struct AuroraHeader: View {
                     }
 
                     Text("DreamSculpt")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .font(.system(size: 26, weight: .bold, design: .rounded))
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [
@@ -168,6 +168,8 @@ struct AuroraHeader: View {
     // MARK: - Action Buttons
     private var actionButtons: some View {
         HStack(spacing: 8) {
+            CameraButton()
+
             LoadImageButton()
 
             if appState.baseImage != nil {

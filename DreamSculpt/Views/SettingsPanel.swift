@@ -8,6 +8,7 @@ import SwiftUI
 struct SettingsPanel: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) var dismiss
+    @State private var showComingSoon = false
 
     var body: some View {
         NavigationView {
@@ -17,7 +18,7 @@ struct SettingsPanel: View {
 
                 ScrollView {
                     VStack(spacing: 24) {
-                        presetsSection
+                        generationLimitSection
                     }
                     .padding()
                 }
@@ -34,41 +35,86 @@ struct SettingsPanel: View {
                 }
             }
         }
+        .alert("Coming Soon", isPresented: $showComingSoon) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("In-app purchases will be available in a future update.")
+        }
     }
 
+    private var generationLimitSection: some View {
+        let manager = GenerationLimitManager.shared
+        let used = manager.generationsUsedToday
+        let remaining = manager.generationsRemaining
 
-    private var presetsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            sectionHeader("Quick Presets")
-
-            HStack(spacing: 12) {
-                PresetButton(
-                    title: "Fast",
-                    icon: "hare.fill",
-                    isSelected: appState.generationSettings == .fast
-                ) {
-                    HapticManager.shared.lightTap()
-                    appState.generationSettings = .fast
-                }
-
-                PresetButton(
-                    title: "Balanced",
-                    icon: "scale.3d",
-                    isSelected: appState.generationSettings == .balanced
-                ) {
-                    HapticManager.shared.lightTap()
-                    appState.generationSettings = .balanced
-                }
-
-                PresetButton(
-                    title: "Quality",
-                    icon: "star.fill",
-                    isSelected: appState.generationSettings == .quality
-                ) {
-                    HapticManager.shared.lightTap()
-                    appState.generationSettings = .quality
-                }
+        let limitColor: Color = {
+            switch remaining {
+            case 7...10: return .green
+            case 4...6: return .yellow
+            case 1...3: return .orange
+            default: return ColorPalette.error
             }
+        }()
+
+        return VStack(alignment: .leading, spacing: 16) {
+            sectionHeader("Daily Generations")
+
+            VStack(spacing: 12) {
+                HStack {
+                    Circle()
+                        .fill(limitColor)
+                        .frame(width: 8, height: 8)
+
+                    Text("\(remaining) remaining today")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(limitColor)
+
+                    Spacer()
+
+                    Text("\(used) / 10 used")
+                        .font(.caption)
+                        .foregroundColor(ColorPalette.textMuted)
+                }
+
+                ProgressView(value: Double(used), total: 10)
+                    .tint(limitColor)
+
+                Button {
+                    HapticManager.shared.mediumImpact()
+                    showComingSoon = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "cart.fill")
+                            .font(.system(size: 14))
+                        Text("Buy More Generations")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(ColorPalette.gradientPrimary)
+                    .cornerRadius(12)
+                }
+
+                #if DEBUG
+                Button {
+                    GenerationLimitManager.shared.resetCount()
+                    appState.refreshGenerationCount()
+                    HapticManager.shared.lightTap()
+                } label: {
+                    Text("Reset Count (Debug)")
+                        .font(.caption)
+                        .foregroundColor(ColorPalette.textMuted)
+                }
+                #endif
+            }
+            .padding(16)
+            .background(Color.white.opacity(0.05))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(ColorPalette.glassBorder, lineWidth: 0.5)
+            )
         }
     }
 
@@ -76,87 +122,6 @@ struct SettingsPanel: View {
         Text(title)
             .font(.headline)
             .foregroundColor(ColorPalette.textPrimary)
-    }
-}
-
-struct SettingsSlider: View {
-    let title: String
-    @Binding var value: Double
-    let range: ClosedRange<Double>
-    let step: Double
-    let description: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(title)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundColor(ColorPalette.textPrimary)
-
-                Spacer()
-
-                Text(formattedValue)
-                    .font(.subheadline.monospacedDigit())
-                    .foregroundColor(ColorPalette.primary)
-            }
-
-            Slider(value: $value, in: range, step: step) { editing in
-                if !editing {
-                    HapticManager.shared.lightTap()
-                }
-            }
-            .tint(ColorPalette.primary)
-
-            Text(description)
-                .font(.caption)
-                .foregroundColor(ColorPalette.textMuted)
-        }
-    }
-
-    private var formattedValue: String {
-        if step >= 1 {
-            return String(format: "%.0f", value)
-        } else if step >= 0.1 {
-            return String(format: "%.1f", value)
-        } else {
-            return String(format: "%.2f", value)
-        }
-    }
-}
-
-struct PresetButton: View {
-    let title: String
-    let icon: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.system(size: 20))
-
-                Text(title)
-                    .font(.caption.weight(.medium))
-            }
-            .foregroundColor(isSelected ? .white : ColorPalette.textSecondary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(
-                Group {
-                    if isSelected {
-                        ColorPalette.gradientPrimary
-                    } else {
-                        Color.white.opacity(0.05)
-                    }
-                }
-            )
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.clear : ColorPalette.glassBorder, lineWidth: 0.5)
-            )
-        }
     }
 }
 

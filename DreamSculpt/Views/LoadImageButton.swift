@@ -40,6 +40,74 @@ struct LoadImageButton: View {
     }
 }
 
+struct CameraButton: View {
+    @EnvironmentObject var appState: AppState
+    @State private var showCamera = false
+
+    var body: some View {
+        Button {
+            HapticManager.shared.lightTap()
+            showCamera = true
+        } label: {
+            Image(systemName: "camera.fill")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.white)
+                .frame(width: 36, height: 36)
+                .background(
+                    LinearGradient(
+                        colors: [ColorPalette.primary.opacity(0.9), ColorPalette.accent.opacity(0.9)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .cornerRadius(10)
+                .shadow(color: ColorPalette.primary.opacity(0.3), radius: 6, x: 0, y: 3)
+        }
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraPicker { image in
+                appState.setBaseImage(image)
+            }
+            .ignoresSafeArea()
+        }
+    }
+}
+
+struct CameraPicker: UIViewControllerRepresentable {
+    var onImagePicked: (UIImage) -> Void
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onImagePicked: onImagePicked)
+    }
+
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let onImagePicked: (UIImage) -> Void
+
+        init(onImagePicked: @escaping (UIImage) -> Void) {
+            self.onImagePicked = onImagePicked
+        }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                onImagePicked(image)
+            }
+            picker.dismiss(animated: true)
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            picker.dismiss(animated: true)
+        }
+    }
+}
+
 struct ClearCanvasButton: View {
     let action: () -> Void
 

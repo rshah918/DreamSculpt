@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5511CE602F8B0459008D5C5E /* LimitReachedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5511CE5F2F8B0459008D5C5E /* LimitReachedView.swift */; };
+		5511CE622F8B0462008D5C5E /* GenerationLimitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5511CE612F8B0462008D5C5E /* GenerationLimitManager.swift */; };
 		5517DF322F54EACB00AA7587 /* GenerateButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5517DF312F54EACB00AA7587 /* GenerateButton.swift */; };
 		55F51B762E64BF8A00E69011 /* DreamSculptApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B752E64BF8A00E69011 /* DreamSculptApp.swift */; };
 		55F51B782E64BF8A00E69011 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B772E64BF8A00E69011 /* ContentView.swift */; };
@@ -56,7 +58,10 @@
 
 /* Begin PBXFileReference section */
 		5511CE3D2F6EEED1008D5C5E /* notes.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = notes.md; sourceTree = "<group>"; };
+		5511CE5F2F8B0459008D5C5E /* LimitReachedView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LimitReachedView.swift; sourceTree = "<group>"; };
+		5511CE612F8B0462008D5C5E /* GenerationLimitManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenerationLimitManager.swift; sourceTree = "<group>"; };
 		5517DF312F54EACB00AA7587 /* GenerateButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenerateButton.swift; sourceTree = "<group>"; };
+		553032932F8B09BA0012F845 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		55F51B722E64BF8A00E69011 /* DreamSculpt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DreamSculpt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		55F51B752E64BF8A00E69011 /* DreamSculptApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DreamSculptApp.swift; sourceTree = "<group>"; };
 		55F51B772E64BF8A00E69011 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -137,6 +142,7 @@
 		55F51B742E64BF8A00E69011 /* DreamSculpt */ = {
 			isa = PBXGroup;
 			children = (
+				553032932F8B09BA0012F845 /* Info.plist */,
 				55F51BAA2E66000000E69011 /* Models */,
 				55F51BAB2E66000000E69011 /* Managers */,
 				55F51BAC2E66000000E69011 /* Views */,
@@ -181,6 +187,7 @@
 		55F51BAB2E66000000E69011 /* Managers */ = {
 			isa = PBXGroup;
 			children = (
+				5511CE612F8B0462008D5C5E /* GenerationLimitManager.swift */,
 				55F51BB32E66000200E69011 /* DebounceManager.swift */,
 				55F51BB52E66000300E69011 /* HistoryManager.swift */,
 				55F51BCB2E66100200E69011 /* HapticManager.swift */,
@@ -191,6 +198,7 @@
 		55F51BAC2E66000000E69011 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				5511CE5F2F8B0459008D5C5E /* LimitReachedView.swift */,
 				5517DF312F54EACB00AA7587 /* GenerateButton.swift */,
 				55F51BBB2E66000600E69011 /* HamburgerMenuButton.swift */,
 				55F51BBD2E66000700E69011 /* HistoryDrawer.swift */,
@@ -364,8 +372,10 @@
 				55F51BC82E66100000E69011 /* GenerationSettings.swift in Sources */,
 				55F51BCA2E66100100E69011 /* PromptBar.swift in Sources */,
 				55F51BCC2E66100200E69011 /* HapticManager.swift in Sources */,
+				5511CE622F8B0462008D5C5E /* GenerationLimitManager.swift in Sources */,
 				55F51BCE2E66100300E69011 /* SettingsPanel.swift in Sources */,
 				55F51BD02E66200000E69011 /* SplashView.swift in Sources */,
+				5511CE602F8B0459008D5C5E /* LimitReachedView.swift in Sources */,
 				55F51BD22E66200100E69011 /* CanvasHeader.swift in Sources */,
 				5517DF322F54EACB00AA7587 /* GenerateButton.swift in Sources */,
 				55F51BD42E66300000E69011 /* RoundedCorner.swift in Sources */,
@@ -534,6 +544,8 @@
 				DEVELOPMENT_TEAM = YQKQ6M73X5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DreamSculpt/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "DreamSculpt needs camera access to take photos for your canvas";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -562,6 +574,8 @@
 				DEVELOPMENT_TEAM = YQKQ6M73X5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DreamSculpt/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "DreamSculpt needs camera access to take photos for your canvas";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

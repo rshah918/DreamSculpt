@@ -15,6 +15,10 @@ struct AIPreviewPanel: View {
     let sessionImages: [UIImage]
     @Binding var sessionIndex: Int
 
+    // Action callbacks
+    var onLoadToCanvas: ((UIImage) -> Void)? = nil
+    var onSaveToPhotos: ((UIImage) -> Void)? = nil
+
     @State private var dragOffset: CGSize = .zero
 
     // Only show if we have at least one image or are loading
@@ -77,6 +81,11 @@ struct AIPreviewPanel: View {
             if isExpanded && sessionImages.count > 1 {
                 historySlider(width: previewSize)
             }
+
+            // Action buttons when expanded
+            if isExpanded && image != nil {
+                actionButtons(width: previewSize)
+            }
         }
         .offset(isExpanded ? .zero : CGSize(width: offset.width + dragOffset.width, height: offset.height + dragOffset.height))
         .position(position)
@@ -121,6 +130,52 @@ struct AIPreviewPanel: View {
         .frame(width: width)
         .background(Color.black.opacity(0.5))
         .cornerRadius(12)
+    }
+
+    private func actionButtons(width: CGFloat) -> some View {
+        HStack(spacing: 12) {
+            Button {
+                if let image = image {
+                    HapticManager.shared.mediumImpact()
+                    onLoadToCanvas?(image)
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "square.and.arrow.down")
+                        .font(.system(size: 12))
+                    Text("Load to Canvas")
+                        .font(.caption.weight(.medium))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(ColorPalette.gradientPrimary)
+                .cornerRadius(10)
+            }
+
+            Button {
+                if let image = image {
+                    onSaveToPhotos?(image)
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 12))
+                    Text("Save to Photos")
+                        .font(.caption.weight(.medium))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(Color.white.opacity(0.15))
+                .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.white.opacity(0.2), lineWidth: 0.5)
+                )
+            }
+        }
+        .frame(width: width)
     }
 
     private var loadingOverlay: some View {

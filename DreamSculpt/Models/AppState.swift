@@ -36,10 +36,21 @@ class AppState: ObservableObject {
         didSet { UserDefaults.standard.set(showPaperTexture, forKey: "showPaperTexture") }
     }
 
+    // Generation limit
+    @Published var showLimitReachedOverlay: Bool = false
+    @Published var generationsRemaining: Int = GenerationLimitManager.shared.generationsRemaining
+
+    func refreshGenerationCount() {
+        generationsRemaining = GenerationLimitManager.shared.generationsRemaining
+    }
+
     static let defaultPrompt = """
     Transform this rough sketch into an awe-inspiring, photorealistic image. Use the sketch only as a structural guide for composition and proportions. Add realistic depth, dramatic lighting, and atmospheric effects such as reflections, sky, and shadows, so the scene feels immersive and cinematic. The final result should look like a stunning photograph, true to the layout of the sketch but elevated into a vivid, breathtaking real-world scene
     """
 
+    static let imageEditPrompt = """
+    Use the sketch as a guide for editing the base image. The sketch marks indicate where and how to modify the image. Interpret the sketch strokes as instructions for changes - adding elements, removing objects, or transforming areas. Blend edits seamlessly with the original image while following the sketch guidance. Maintain the style and quality of the original image.
+    """
 
     // Track if we've had at least one generation
     var hasGeneratedImage: Bool {
@@ -50,7 +61,7 @@ class AppState: ObservableObject {
     private var promptBeforeImageEdit: String? = nil
 
     var hasCustomPrompt: Bool {
-        customPrompt != Self.defaultPrompt
+        customPrompt != Self.defaultPrompt && customPrompt != Self.imageEditPrompt && customPrompt != currentDefaultPrompt
     }
 
     init() {
@@ -66,6 +77,12 @@ class AppState: ObservableObject {
         }
 
         loadHistory()
+
+        // Pre-select Photo preset if prompt is the old default or the photo preset prompt
+        let photoSketchPrompt = "Transform this sketch into: \(StylePreset.photorealistic.promptSnippet)"
+        if customPrompt == Self.defaultPrompt || customPrompt == photoSketchPrompt {
+            applyStylePreset(.photorealistic)
+        }
     }
 
     private func savePrompt() {
@@ -79,18 +96,14 @@ class AppState: ObservableObject {
     }
 
     var currentDefaultPrompt: String {
-        if (baseImage != nil) {
-            applyStylePreset(StylePreset.photorealistic)
-            return customPrompt
+        if baseImage != nil {
+            return "Edit the base image using the sketch as a guide. Apply the edit in a \(StylePreset.photorealistic.promptSnippet) style. Blend changes seamlessly with the original image."
         }
-        else{
-            return Self.defaultPrompt
-        }
+        return "Transform this sketch into: \(StylePreset.photorealistic.promptSnippet)"
     }
 
     func resetPromptToDefault() {
-        customPrompt = currentDefaultPrompt
-        selectedStylePreset = nil
+        applyStylePreset(.photorealistic)
     }
 
     func applyStylePreset(_ preset: StylePreset) {
@@ -98,7 +111,6 @@ class AppState: ObservableObject {
         if baseImage != nil {
             // Image edit mode - style presets modify how the edit is applied
             customPrompt = "Edit the base image using the sketch as a guide. Apply the edit in a \(preset.promptSnippet) style. Blend changes seamlessly with the original image."
-            
         } else {
             // Sketch to image mode
             customPrompt = "Transform this sketch into: \(preset.promptSnippet)"
@@ -140,21 +152,21 @@ class AppState: ObservableObject {
         // Auto-switch prompt based on whether we have a base image
         if willHaveImage && !hadImage {
             // Switching to image edit mode - save current prompt and switch
-            if customPrompt == Self.defaultPrompt {
+            if customPrompt == currentDefaultPrompt || customPrompt == Self.defaultPrompt {
                 promptBeforeImageEdit = nil
             } else {
                 promptBeforeImageEdit = customPrompt
             }
-            applyStylePreset(StylePreset.photorealistic)
+            applyStylePreset(.photorealistic)
         } else if !willHaveImage && hadImage {
             // Removing image - restore previous prompt
             if let savedPrompt = promptBeforeImageEdit {
                 customPrompt = savedPrompt
+                selectedStylePreset = nil
             } else {
-                customPrompt = Self.defaultPrompt
+                applyStylePreset(.photorealistic)
             }
             promptBeforeImageEdit = nil
-            selectedStylePreset = nil
         }
     }
 

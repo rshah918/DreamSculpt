@@ -13,6 +13,7 @@ struct PromptBar: View {
     @State private var pulseAnimation: Bool = false
 
     var hasDrawing: Bool = false
+    var hasBaseImage: Bool = false
     var onGenerate: () -> Void = {}
     var onCollapse: () -> Void = {}
     var onUndo: () -> Void = {}
@@ -41,7 +42,7 @@ struct PromptBar: View {
                             )
                     }
 
-                    GenerateButton(hasDrawing: hasDrawing, onTrigger: onGenerate)
+                    GenerateButton(hasDrawing: hasDrawing, hasBaseImage: hasBaseImage, onTrigger: onGenerate)
                 }
             }
 
@@ -143,24 +144,24 @@ struct PromptBar: View {
         VStack(spacing: 16) {
             // Header
             HStack {
-                Button {
-                    HapticManager.shared.lightTap()
-                    isTextFieldFocused = false
-                    isExpanded = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        onCollapse()
-                    }
-                } label: {
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(ColorPalette.textMuted)
-                }
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(ColorPalette.textMuted)
 
                 Text("Custom Prompt")
                     .font(.headline)
                     .foregroundColor(ColorPalette.textPrimary)
 
                 Spacer()
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                HapticManager.shared.lightTap()
+                isTextFieldFocused = false
+                isExpanded = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    onCollapse()
+                }
             }
             .padding(.horizontal, 16)
             .padding(.top, 16)

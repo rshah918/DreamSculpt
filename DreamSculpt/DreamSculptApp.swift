@@ -14,7 +14,7 @@ struct DreamSculptApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                ContentView()
+                ContentView(canvasReady: !showSplash)
                     .environmentObject(appState)
                     .opacity(showSplash ? 0 : 1)
 

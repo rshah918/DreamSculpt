@@ -24,6 +24,7 @@ struct CanvasView: UIViewRepresentable {
     @Binding var requestFocus: (() -> Void)?
     @Binding var undoAction: (() -> Void)?
     @Binding var resignFocus: (() -> Void)?
+    var canvasReady: Bool = true
 
     func makeUIView(context: Context) -> UIView {
         let containerView = UIView()
@@ -51,12 +52,12 @@ struct CanvasView: UIViewRepresentable {
 
         canvasView.delegate = context.coordinator
 
-        // Constraints
+        // Constraints - background image has bottom inset to avoid prompt bar occlusion
         NSLayoutConstraint.activate([
             backgroundImageView.topAnchor.constraint(equalTo: containerView.topAnchor),
             backgroundImageView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
             backgroundImageView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
-            backgroundImageView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+            backgroundImageView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -200),
 
             canvasView.topAnchor.constraint(equalTo: containerView.topAnchor),
             canvasView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
@@ -76,10 +77,11 @@ struct CanvasView: UIViewRepresentable {
         // Update coordinator reference
         context.coordinator.parent = self
 
-        // Attach tool picker once canvas is in window
+        // Attach tool picker once canvas is in window and canvas is ready
         DispatchQueue.main.async {
             guard let canvasView = context.coordinator.canvasView,
                   canvasView.window != nil,
+                  self.canvasReady,
                   context.coordinator.toolPicker == nil else { return }
 
             let toolPicker = PKToolPicker()
@@ -142,10 +144,13 @@ struct CanvasView: UIViewRepresentable {
         }
 
         func performGeneration() {
-            guard let drawing = pendingDrawing else { return }
-            guard !drawing.bounds.isEmpty else { return }
+            let hasDrawing = pendingDrawing != nil && !pendingDrawing!.bounds.isEmpty
+            let hasBase = parent.baseImage != nil
+
+            guard hasDrawing || hasBase else { return }
             guard debounceManager.shouldAllowRequest() else { return }
 
+            let drawing = pendingDrawing ?? PKDrawing()
             let currentSketch = getCompositeImage(from: drawing)
             let prompt = parent.customPrompt
             let settings = parent.generationSettings

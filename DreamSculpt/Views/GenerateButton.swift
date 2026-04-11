@@ -9,10 +9,11 @@ import SwiftUI
 struct GenerateButton: View {
     @EnvironmentObject var appState: AppState
     var hasDrawing: Bool
+    var hasBaseImage: Bool = false
     var onTrigger: () -> Void
 
     private var isDisabled: Bool {
-        appState.isLoading || !hasDrawing
+        appState.isLoading || (!hasDrawing && !hasBaseImage)
     }
 
     var body: some View {

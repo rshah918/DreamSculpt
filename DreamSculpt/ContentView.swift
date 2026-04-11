@@ -6,6 +6,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    var canvasReady: Bool = true
     @EnvironmentObject var appState: AppState
     @State private var previewOffset: CGSize = .zero
     @State private var isExpanded: Bool = false
@@ -38,6 +39,8 @@ struct ContentView: View {
                             generationSettings: appState.generationSettings,
                             onGenerationComplete: { sketch, result in
                                 appState.addToHistory(sketch: sketch, result: result)
+                                GenerationLimitManager.shared.incrementCount()
+                                appState.refreshGenerationCount()
                             },
                             triggerGeneration: $generateAction,
                             onDrawingChanged: { hasDrawing in
@@ -45,7 +48,8 @@ struct ContentView: View {
                             },
                             requestFocus: $requestCanvasFocus,
                             undoAction: $undoAction,
-                            resignFocus: $resignCanvasFocus
+                            resignFocus: $resignCanvasFocus,
+                            canvasReady: canvasReady
                         )
                         .clipShape(RoundedCorner(radius: 16, corners: [.topLeft, .topRight]))
                         .shadow(color: .black.opacity(0.3), radius: 12, y: -4)
@@ -56,13 +60,33 @@ struct ContentView: View {
                             PromptBar(
                                 isExpanded: $isPromptBarExpanded,
                                 hasDrawing: hasCanvasDrawing,
-                                onGenerate: { generateAction?() },
+                                hasBaseImage: appState.baseImage != nil,
+                                onGenerate: {
+                                if GenerationLimitManager.shared.canGenerate() {
+                                    generateAction?()
+                                } else {
+                                    appState.showLimitReachedOverlay = true
+                                }
+                            },
                                 onCollapse: { requestCanvasFocus?() },
                                 onUndo: { undoAction?() }
                             )
+                            .padding(20)
+                
                         }
                     }
                     .ignoresSafeArea(edges: .bottom)
+                }
+
+                // Generation counter - top right
+                VStack {
+                    HStack {
+                        Spacer()
+                        generationCounter
+                            .padding(.trailing, 16)
+                            .padding(.top, 68)
+                    }
+                    Spacer()
                 }
 
                 // AI Preview Panel - passes session history for slider
@@ -75,7 +99,15 @@ struct ContentView: View {
                     sessionIndex: Binding(
                         get: { appState.sessionIndex },
                         set: { appState.setSessionIndex($0) }
-                    )
+                    ),
+                    onLoadToCanvas: { image in
+                        appState.setBaseImage(image)
+                        isExpanded = false
+                    },
+                    onSaveToPhotos: { image in
+                        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+                        HapticManager.shared.lightTap()
+                    }
                 )
 
                 // History Drawer overlay
@@ -84,9 +116,17 @@ struct ContentView: View {
                     onSelectRecord: { record in
                         if let image = record.resultImage {
                             appState.setBaseImage(image)
+                            appState.currentPreviewImage = image
+                            appState.sessionImages.append(image)
+                            appState.sessionIndex = appState.sessionImages.count - 1
                         }
                     }
                 )
+
+                // Generation limit overlay
+                if appState.showLimitReachedOverlay {
+                    LimitReachedView(isPresented: $appState.showLimitReachedOverlay)
+                }
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
@@ -98,6 +138,35 @@ struct ContentView: View {
                 requestCanvasFocus?()
             }
         }
+    }
+
+    private var generationCounter: some View {
+        let remaining = appState.generationsRemaining
+        let color: Color = {
+            switch remaining {
+            case 7...10: return .green
+            case 4...6: return .yellow
+            case 1...3: return .orange
+            default: return .red
+            }
+        }()
+
+        return HStack(spacing: 5) {
+            Circle()
+                .fill(color)
+                .frame(width: 6, height: 6)
+            Text("\(remaining)")
+                .font(.system(size: 13, weight: .semibold).monospacedDigit())
+                .foregroundColor(color)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.black.opacity(0.6))
+        .cornerRadius(10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(color.opacity(0.4), lineWidth: 1)
+        )
     }
 }
 
