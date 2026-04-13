@@ -8,7 +8,11 @@ import UIKit
 import PencilKit
 
 // MARK: - Mock Mode Toggle (DELETE LATER)
+#if DEBUG
 let USE_MOCK_GENERATION = false
+#else
+let USE_MOCK_GENERATION = false
+#endif
 
 struct CanvasView: UIViewRepresentable {
     @Binding var generatedImage: UIImage?
@@ -210,7 +214,7 @@ struct CanvasView: UIViewRepresentable {
 
             let compositeImage = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
-            return compositeImage!
+            return compositeImage ?? UIImage()
         }
     }
 }

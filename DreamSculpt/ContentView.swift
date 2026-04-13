@@ -65,7 +65,17 @@ struct ContentView: View {
                                 if GenerationLimitManager.shared.canGenerate() {
                                     generateAction?()
                                 } else {
-                                    appState.showLimitReachedOverlay = true
+                                    // Auto-trigger purchase of 10-pack, then generate
+                                    if let smallPack = StoreManager.shared.products.first(where: { $0.id == "com.DreamSculpt.generations.10" }) {
+                                        Task {
+                                            await StoreManager.shared.purchase(smallPack)
+                                            if GenerationLimitManager.shared.canGenerate() {
+                                                generateAction?()
+                                            }
+                                        }
+                                    } else {
+                                        appState.showLimitReachedOverlay = true
+                                    }
                                 }
                             },
                                 onCollapse: { requestCanvasFocus?() },
@@ -144,7 +154,7 @@ struct ContentView: View {
         let remaining = appState.generationsRemaining
         let color: Color = {
             switch remaining {
-            case 7...10: return .green
+            case 7...10000: return .green
             case 4...6: return .yellow
             case 1...3: return .orange
             default: return .red

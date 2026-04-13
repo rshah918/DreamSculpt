@@ -1,0 +1,76 @@
+{
+  "identifier" : "DreamSculpt Products",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "1",
+      "localizations" : [
+        {
+          "description" : "10 AI image generations",
+          "displayName" : "10 Generations",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.DreamSculpt.generations.10",
+      "referenceName" : "10 Generations",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "7.99",
+      "familyShareable" : false,
+      "internalID" : "2",
+      "localizations" : [
+        {
+          "description" : "50 AI image generations",
+          "displayName" : "50 Generations",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.DreamSculpt.generations.50",
+      "referenceName" : "50 Generations",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "14.99",
+      "familyShareable" : false,
+      "internalID" : "3",
+      "localizations" : [
+        {
+          "description" : "150 AI image generations",
+          "displayName" : "150 Generations",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.DreamSculpt.generations.150",
+      "referenceName" : "150 Generations",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "1",
+    "_developerTeamID" : "YQKQ6M73X5",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : "2026-04-12T00:00:00Z",
+    "_storeKitErrors" : [
+      {
+        "current" : {
+          "index" : 0,
+          "type" : "generic"
+        },
+        "enabled" : false,
+        "name" : "Load Products"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

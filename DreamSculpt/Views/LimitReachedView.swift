@@ -7,7 +7,7 @@ import SwiftUI
 
 struct LimitReachedView: View {
     @Binding var isPresented: Bool
-    @State private var showComingSoon = false
+    @State private var showStorefront = false
 
     var body: some View {
         ZStack {
@@ -32,7 +32,7 @@ struct LimitReachedView: View {
                     .font(.title2.weight(.bold))
                     .foregroundColor(ColorPalette.textPrimary)
 
-                Text("You've used all 10 free generations for today.\nCome back tomorrow or buy more!")
+                Text("You've used all 10 free generations for today.\nBuy more or come back tomorrow!")
                     .font(.subheadline)
                     .foregroundColor(ColorPalette.textSecondary)
                     .multilineTextAlignment(.center)
@@ -49,7 +49,7 @@ struct LimitReachedView: View {
                 VStack(spacing: 12) {
                     Button {
                         HapticManager.shared.mediumImpact()
-                        showComingSoon = true
+                        showStorefront = true
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "cart.fill")
@@ -81,10 +81,8 @@ struct LimitReachedView: View {
             .glassmorphic(cornerRadius: 24)
             .padding(.horizontal, 32)
         }
-        .alert("Coming Soon", isPresented: $showComingSoon) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("In-app purchases will be available in a future update.")
+        .sheet(isPresented: $showStorefront) {
+            StorefrontView()
         }
     }
 }

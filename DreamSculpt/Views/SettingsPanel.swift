@@ -8,7 +8,7 @@ import SwiftUI
 struct SettingsPanel: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) var dismiss
-    @State private var showComingSoon = false
+    @State private var showStorefront = false
 
     var body: some View {
         NavigationView {
@@ -35,10 +35,8 @@ struct SettingsPanel: View {
                 }
             }
         }
-        .alert("Coming Soon", isPresented: $showComingSoon) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("In-app purchases will be available in a future update.")
+        .sheet(isPresented: $showStorefront) {
+            StorefrontView()
         }
     }
 
@@ -49,7 +47,7 @@ struct SettingsPanel: View {
 
         let limitColor: Color = {
             switch remaining {
-            case 7...10: return .green
+            case 7...10000: return .green
             case 4...6: return .yellow
             case 1...3: return .orange
             default: return ColorPalette.error
@@ -65,23 +63,35 @@ struct SettingsPanel: View {
                         .fill(limitColor)
                         .frame(width: 8, height: 8)
 
-                    Text("\(remaining) remaining today")
+                    Text("\(remaining) remaining")
                         .font(.subheadline.weight(.medium))
                         .foregroundColor(limitColor)
 
                     Spacer()
 
-                    Text("\(used) / 10 used")
+                    Text("\(used) / 10 free used")
                         .font(.caption)
                         .foregroundColor(ColorPalette.textMuted)
                 }
 
-                ProgressView(value: Double(used), total: 10)
+                ProgressView(value: Double(min(used, 10)), total: 10)
                     .tint(limitColor)
+
+                if manager.purchasedCredits > 0 {
+                    HStack(spacing: 6) {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(ColorPalette.primary)
+                        Text("\(manager.purchasedCredits) purchased credits")
+                            .font(.caption.weight(.medium))
+                            .foregroundColor(ColorPalette.primary)
+                        Spacer()
+                    }
+                }
 
                 Button {
                     HapticManager.shared.mediumImpact()
-                    showComingSoon = true
+                    showStorefront = true
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "cart.fill")
@@ -100,6 +110,7 @@ struct SettingsPanel: View {
                 Button {
                     GenerationLimitManager.shared.resetCount()
                     appState.refreshGenerationCount()
+                    StoreManager.shared.purchasedCredits = 0
                     HapticManager.shared.lightTap()
                 } label: {
                     Text("Reset Count (Debug)")

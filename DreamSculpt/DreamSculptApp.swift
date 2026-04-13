@@ -27,6 +27,11 @@ struct DreamSculptApp: App {
                     .transition(.opacity)
                 }
             }
+            .onAppear {
+                StoreManager.shared.onPurchaseComplete = {
+                    appState.refreshGenerationCount()
+                }
+            }
         }
     }
 }
