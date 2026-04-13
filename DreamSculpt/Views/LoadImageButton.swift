@@ -69,6 +69,25 @@ struct CameraButton: View {
             }
             .ignoresSafeArea()
         }
+        .onChange(of: showCamera) { _, isShowing in
+            guard let window = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .flatMap({ $0.windows })
+                .first(where: { $0.isKeyWindow }),
+                  let canvas = window.rootViewController?.view.viewWithTag(200) as? UIView else {
+                return
+            }
+
+            if isShowing {
+                // 🔥 Explicitly resign the canvas
+                canvas.resignFirstResponder()
+            } else {
+                // 🔥 Bring it back so PKToolPicker reappears
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    canvas.becomeFirstResponder()
+                }
+            }
+        }
     }
 }
 
