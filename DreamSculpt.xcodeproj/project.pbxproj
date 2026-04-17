@@ -10,6 +10,8 @@
 		5511CE602F8B0459008D5C5E /* LimitReachedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5511CE5F2F8B0459008D5C5E /* LimitReachedView.swift */; };
 		5511CE622F8B0462008D5C5E /* GenerationLimitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5511CE612F8B0462008D5C5E /* GenerationLimitManager.swift */; };
 		5517DF322F54EACB00AA7587 /* GenerateButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5517DF312F54EACB00AA7587 /* GenerateButton.swift */; };
+		55ECF6482F8C866F00CF367F /* StoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55ECF6472F8C866F00CF367F /* StoreManager.swift */; };
+		55ECF64A2F8C867900CF367F /* StorefrontView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55ECF6492F8C867900CF367F /* StorefrontView.swift */; };
 		55F51B762E64BF8A00E69011 /* DreamSculptApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B752E64BF8A00E69011 /* DreamSculptApp.swift */; };
 		55F51B782E64BF8A00E69011 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B772E64BF8A00E69011 /* ContentView.swift */; };
 		55F51B7A2E64BF8B00E69011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55F51B792E64BF8B00E69011 /* Assets.xcassets */; };
@@ -62,6 +64,9 @@
 		5511CE612F8B0462008D5C5E /* GenerationLimitManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenerationLimitManager.swift; sourceTree = "<group>"; };
 		5517DF312F54EACB00AA7587 /* GenerateButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenerateButton.swift; sourceTree = "<group>"; };
 		553032932F8B09BA0012F845 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		55ECF6472F8C866F00CF367F /* StoreManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoreManager.swift; sourceTree = "<group>"; };
+		55ECF6492F8C867900CF367F /* StorefrontView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StorefrontView.swift; sourceTree = "<group>"; };
+		55ECF64B2F8C871B00CF367F /* DreamSculptProducts.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = DreamSculptProducts.storekit; path = DreamSculpt/DreamSculptProducts.storekit; sourceTree = "<group>"; };
 		55F51B722E64BF8A00E69011 /* DreamSculpt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DreamSculpt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		55F51B752E64BF8A00E69011 /* DreamSculptApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DreamSculptApp.swift; sourceTree = "<group>"; };
 		55F51B772E64BF8A00E69011 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -122,6 +127,7 @@
 		55F51B692E64BF8A00E69011 = {
 			isa = PBXGroup;
 			children = (
+				55ECF64B2F8C871B00CF367F /* DreamSculptProducts.storekit */,
 				55F51B742E64BF8A00E69011 /* DreamSculpt */,
 				55F51B852E64BF8C00E69011 /* DreamSculptTests */,
 				55F51B8F2E64BF8C00E69011 /* DreamSculptUITests */,
@@ -187,6 +193,7 @@
 		55F51BAB2E66000000E69011 /* Managers */ = {
 			isa = PBXGroup;
 			children = (
+				55ECF6472F8C866F00CF367F /* StoreManager.swift */,
 				5511CE612F8B0462008D5C5E /* GenerationLimitManager.swift */,
 				55F51BB32E66000200E69011 /* DebounceManager.swift */,
 				55F51BB52E66000300E69011 /* HistoryManager.swift */,
@@ -198,6 +205,7 @@
 		55F51BAC2E66000000E69011 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				55ECF6492F8C867900CF367F /* StorefrontView.swift */,
 				5511CE5F2F8B0459008D5C5E /* LimitReachedView.swift */,
 				5517DF312F54EACB00AA7587 /* GenerateButton.swift */,
 				55F51BBB2E66000600E69011 /* HamburgerMenuButton.swift */,
@@ -353,6 +361,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55ECF64A2F8C867900CF367F /* StorefrontView.swift in Sources */,
 				55F51B782E64BF8A00E69011 /* ContentView.swift in Sources */,
 				55F51B762E64BF8A00E69011 /* DreamSculptApp.swift in Sources */,
 				55F51BA02E65057A00E69011 /* CanvasView.swift in Sources */,
@@ -377,6 +386,7 @@
 				55F51BD02E66200000E69011 /* SplashView.swift in Sources */,
 				5511CE602F8B0459008D5C5E /* LimitReachedView.swift in Sources */,
 				55F51BD22E66200100E69011 /* CanvasHeader.swift in Sources */,
+				55ECF6482F8C866F00CF367F /* StoreManager.swift in Sources */,
 				5517DF322F54EACB00AA7587 /* GenerateButton.swift in Sources */,
 				55F51BD42E66300000E69011 /* RoundedCorner.swift in Sources */,
 			);
