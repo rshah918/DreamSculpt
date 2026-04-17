@@ -85,7 +85,6 @@ struct ContentView: View {
                 
                         }
                     }
-                    .ignoresSafeArea(edges: .bottom)
                 }
 
                 // Generation counter - top right

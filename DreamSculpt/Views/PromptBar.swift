@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct PromptBar: View {
     @EnvironmentObject var appState: AppState
@@ -11,7 +12,10 @@ struct PromptBar: View {
     @FocusState private var isTextFieldFocused: Bool
     @State private var editingPrompt: String = ""
     @State private var pulseAnimation: Bool = false
-
+    
+    // Track keyboard height for automatic push-up
+    @State private var keyboardHeight: CGFloat = 0
+    
     var hasDrawing: Bool = false
     var hasBaseImage: Bool = false
     var onGenerate: () -> Void = {}
@@ -82,8 +86,10 @@ struct PromptBar: View {
             .shadow(color: ColorPalette.primary.opacity(0.2), radius: 15, x: 0, y: 5)
         }
         .padding(.horizontal, 16)
-        .padding(.bottom, 140) // Extra padding to stay above tool picker
+        // Dynamically adds keyboard height so the bar moves up
+        .padding(.bottom, 140 + keyboardHeight)
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isExpanded)
+        .animation(.easeOut(duration: 0.25), value: keyboardHeight)
         .onChange(of: isExpanded) { _, expanded in
             if expanded {
                 editingPrompt = appState.customPrompt
@@ -94,6 +100,15 @@ struct PromptBar: View {
             withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
                 pulseAnimation = true
             }
+        }
+        // Keyboard handling (fixed the conditional binding error)
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notification in
+            if let keyboardFrame = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+                keyboardHeight = keyboardFrame.height
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            keyboardHeight = 0
         }
     }
 
@@ -189,7 +204,7 @@ struct PromptBar: View {
                     .foregroundColor(ColorPalette.textMuted)
                     .padding(.horizontal, 16)
 
-                ScrollView(.horizontal, showsIndicators: false) {
+                ScrollView(.horizontal, showsIndicators: false){
                     HStack(spacing: 8) {
                         ForEach(StylePreset.allCases) { preset in
                             StylePresetChip(

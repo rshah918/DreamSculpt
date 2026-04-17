@@ -97,7 +97,7 @@ struct HistoryThumbnailCard: View {
             .onEnded { value in
                 withAnimation(.spring()) {
                     if value.translation.width < 0 {
-                        offset = max(value.translation.width, -70)
+                        offset = -70
                     } else {
                         offset = 0
                     }
