@@ -85,16 +85,19 @@ struct HistoryThumbnailCard: View {
     }
 
     private var swipeGesture: some Gesture {
-        DragGesture()
+        DragGesture(minimumDistance: 15, coordinateSpace: .local)
             .onChanged { value in
+                // Only horizontal
+                guard abs(value.translation.width) > abs(value.translation.height) else { return }
+
                 if value.translation.width < 0 {
                     offset = max(value.translation.width, -70)
                 }
             }
             .onEnded { value in
                 withAnimation(.spring()) {
-                    if value.translation.width < -50 {
-                        offset = -70
+                    if value.translation.width < 0 {
+                        offset = max(value.translation.width, -70)
                     } else {
                         offset = 0
                     }

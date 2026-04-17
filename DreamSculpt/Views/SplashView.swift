@@ -189,7 +189,7 @@ struct SplashView: View {
                     .scaleEffect(morphOut ? 1.05 : 1.0)
                     .opacity(morphOut ? 0.0 : 1.0)
 
-                    Text("Sketch your imagination")
+                    Text("Sculpt your imagination")
                         .font(.system(size: 15, weight: .medium, design: .rounded))
                         .foregroundColor(ColorPalette.textMuted.opacity(0.95))
                         .opacity(subtitleOpacity)

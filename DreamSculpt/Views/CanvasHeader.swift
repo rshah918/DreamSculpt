@@ -156,7 +156,7 @@ struct AuroraHeader: View {
                         .shadow(color: ColorPalette.primary.opacity(0.5), radius: 4)
                 }
 
-                Text("Sketch your imagination")
+                Text("Sculpt your imagination")
                     .font(.system(size: 9, weight: .medium))
                     .foregroundColor(ColorPalette.textMuted)
                     .tracking(1.5)

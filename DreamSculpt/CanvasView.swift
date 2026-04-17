@@ -9,7 +9,7 @@ import PencilKit
 
 // MARK: - Mock Mode Toggle (DELETE LATER)
 #if DEBUG
-let USE_MOCK_GENERATION = false
+let USE_MOCK_GENERATION = true
 #else
 let USE_MOCK_GENERATION = false
 #endif
