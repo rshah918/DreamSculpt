@@ -65,7 +65,7 @@ class StoreManager: ObservableObject {
                 lastError = "No products returned from App Store."
             } catch {
                 lastError = error.localizedDescription
-                print("fetchProducts attempt \(attempt + 1) failed: \(error)")
+                debugLog("fetchProducts attempt \(attempt + 1) failed: \(error)")
             }
         }
         loadState = .failed(lastError ?? "Failed to load products.")
@@ -136,7 +136,7 @@ class StoreManager: ObservableObject {
                     }
                     await transaction.finish()
                 } catch {
-                    print("Unverified transaction update: \(error)")
+                    debugLog("Unverified transaction update: \(error)")
                 }
             }
         }

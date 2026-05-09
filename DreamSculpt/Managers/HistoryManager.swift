@@ -13,17 +13,21 @@ class HistoryManager {
     private let maxRecords = 50
     private let maxStorageMB: Double = 500
 
-    private var documentsDirectory: URL {
+    // Cached once. Both paths are stable for the app's lifetime, and
+    // `historyDirectory` previously did an existence check + conditional
+    // `createDirectory` on every access — which the SwiftUI history drawer
+    // hit dozens of times per body recompute.
+    private let documentsDirectory: URL = {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-    }
+    }()
 
-    private var historyDirectory: URL {
+    private lazy var historyDirectory: URL = {
         let dir = documentsDirectory.appendingPathComponent("GenerationHistory", isDirectory: true)
         if !FileManager.default.fileExists(atPath: dir.path) {
             try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         }
         return dir
-    }
+    }()
 
     func loadHistory() -> [GenerationRecord] {
         guard let data = UserDefaults.standard.data(forKey: historyKey),
@@ -86,7 +90,7 @@ class HistoryManager {
             try data.write(to: url)
             return true
         } catch {
-            print("Failed to save image: \(error)")
+            debugLog("Failed to save image: \(error)")
             return false
         }
     }

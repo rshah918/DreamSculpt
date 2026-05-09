@@ -10,8 +10,10 @@ import SwiftUI
 struct AuroraHeader: View {
     @EnvironmentObject var appState: AppState
     @State private var sparkleRotation: Double = 0
-    @State private var shimmerOffset: CGFloat = -200
-    @State private var glowPulse: Bool = false
+    // Static "pulsed" state — previously animated forever, but the cost of
+    // continuously re-evaluating the dependent views (icon scale/opacity,
+    // bottom glow) added up. Resting at the brighter end looks alive enough.
+    private let glowPulse: Bool = true
 
     var body: some View {
         ZStack {
@@ -32,10 +34,7 @@ struct AuroraHeader: View {
             // Layer 3: Floating particles
             HeaderParticles()
 
-            // Layer 4: Shimmer sweep effect
-            shimmerEffect
-
-            // Layer 5: Content
+            // Layer 4: Content
             VStack(spacing: 0) {
                 HStack(alignment: .center, spacing: 12) {
                     // Left: Menu button
@@ -77,37 +76,15 @@ struct AuroraHeader: View {
         }
     }
 
-    // MARK: - Shimmer Effect
-    private var shimmerEffect: some View {
-        GeometryReader { geo in
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0),
-                            Color.white.opacity(0.03),
-                            Color.white.opacity(0.08),
-                            Color.white.opacity(0.03),
-                            Color.white.opacity(0)
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .frame(width: 150)
-                .offset(x: shimmerOffset)
-                .blur(radius: 10)
-        }
-    }
-
     // MARK: - Branding Center
     private var brandingCenter: some View {
         ZStack {
-            // Glow behind text — capped blur to keep this from being a hot redraw
+            // Glow behind text — static blur (animating blur radius forces Core Image
+            // to recompute the kernel every frame, which is a major GPU cost).
             Text("DreamSculpt")
                 .font(.system(size: 26, weight: .bold, design: .rounded))
                 .foregroundColor(ColorPalette.primary)
-                .blur(radius: glowPulse ? 10 : 8)
+                .blur(radius: 9)
                 .opacity(0.5)
 
             VStack(spacing: 2) {
@@ -206,29 +183,25 @@ struct AuroraHeader: View {
 
     // MARK: - Animations
     private func startAnimations() {
-        // Sparkle rotation
-        let duration = appState.isLoading ? 1.0 : 4.0
-        withAnimation(.linear(duration: duration).repeatForever(autoreverses: false)) {
-            sparkleRotation = 360
-        }
-
-        // Shimmer sweep
-        withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: false)) {
-            shimmerOffset = 500
-        }
-
-        // Glow pulse
-        withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
-            glowPulse = true
+        // Sparkle rotation — only spin while a generation is in flight, otherwise
+        // it's perpetual GPU work for an effect the user isn't watching.
+        if appState.isLoading {
+            withAnimation(.linear(duration: 1.0).repeatForever(autoreverses: false)) {
+                sparkleRotation = 360
+            }
         }
     }
 }
 
 // MARK: - Aurora Waves
 struct AuroraWaves: View {
-    @State private var phase1: CGFloat = 0
-    @State private var phase2: CGFloat = 0
-    @State private var phase3: CGFloat = 0
+    // Static phases — each wave gets a different fixed offset so they don't
+    // line up and look like a single shape. Animating these every frame meant
+    // SwiftUI rebuilt three blurred shape paths at 60Hz, which dominated GPU
+    // time. The layered + blurred result still reads as "aurora" without motion.
+    private let phase1: CGFloat = 0
+    private let phase2: CGFloat = .pi / 2
+    private let phase3: CGFloat = .pi
 
     var body: some View {
         GeometryReader { geo in
@@ -281,18 +254,6 @@ struct AuroraWaves: View {
                     .blur(radius: 16)
                     .offset(y: 30)
             }
-            .onAppear {
-                // Slower cycles to reduce the per-frame path rebuild work.
-                withAnimation(.easeInOut(duration: 9).repeatForever(autoreverses: true)) {
-                    phase1 = .pi * 2
-                }
-                withAnimation(.easeInOut(duration: 11).repeatForever(autoreverses: true)) {
-                    phase2 = .pi * 2
-                }
-                withAnimation(.easeInOut(duration: 13).repeatForever(autoreverses: true)) {
-                    phase3 = .pi * 2
-                }
-            }
         }
     }
 }
@@ -336,16 +297,11 @@ struct HeaderParticle: Identifiable {
     var size: CGFloat
     var color: Color
     var baseOpacity: Double
-    var animationDuration: Double
-    var animationDelay: Double
-    var driftX: CGFloat
-    var driftY: CGFloat
 }
 
 // MARK: - Header Particles View
 struct HeaderParticles: View {
     @State private var particles: [HeaderParticle] = []
-    @State private var isAnimating = false
 
     var body: some View {
         GeometryReader { geo in
@@ -354,33 +310,26 @@ struct HeaderParticles: View {
                     Circle()
                         .fill(particle.color)
                         .frame(width: particle.size, height: particle.size)
-                        .position(
-                            x: particle.position.x + (isAnimating ? particle.driftX : 0),
-                            y: particle.position.y + (isAnimating ? particle.driftY : 0)
-                        )
-                        .opacity(isAnimating ? particle.baseOpacity : particle.baseOpacity * 0.2)
+                        .position(particle.position)
+                        .opacity(particle.baseOpacity)
                         .blur(radius: particle.size / 2.5)
-                        .animation(
-                            Animation
-                                .easeInOut(duration: particle.animationDuration)
-                                .repeatForever(autoreverses: true)
-                                .delay(particle.animationDelay),
-                            value: isAnimating
-                        )
                 }
             }
             .onAppear {
-                generateParticles(in: geo.size)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    isAnimating = true
+                if particles.isEmpty {
+                    generateParticles(in: geo.size)
                 }
             }
         }
+        // Particles are decorative dots — let SwiftUI rasterize once and reuse.
+        .drawingGroup()
+        .allowsHitTesting(false)
     }
 
     private func generateParticles(in size: CGSize) {
-        // Reduced from 18-25 to keep the GPU cool. Each particle drives a perpetual
-        // SwiftUI animation with a blur, which is surprisingly expensive in aggregate.
+        // Static placement — previously each particle drove its own perpetual
+        // SwiftUI animation with a blur, which compounded into a steady GPU
+        // load. The visual reads as "atmospheric blurred dots" either way.
         let particleCount = Int.random(in: 8...10)
         let colors: [Color] = [
             ColorPalette.primary.opacity(0.5),
@@ -398,11 +347,7 @@ struct HeaderParticles: View {
                 ),
                 size: CGFloat.random(in: 4...20),
                 color: colors.randomElement() ?? ColorPalette.primary.opacity(0.5),
-                baseOpacity: Double.random(in: 0.3...0.6),
-                animationDuration: Double.random(in: 5.0...9.0),
-                animationDelay: Double.random(in: 0...2.0),
-                driftX: CGFloat.random(in: -20...20),
-                driftY: CGFloat.random(in: -10...10)
+                baseOpacity: Double.random(in: 0.3...0.6)
             )
         }
     }

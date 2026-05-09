@@ -25,11 +25,11 @@ struct APIResponseSchema: Decodable {
 
 func uploadDrawing(image: UIImage, prompt: String, settings: GenerationSettings, sessionId: String) async -> UIImage? {
     guard let url = URL(string: "https://13.221.123.53.sslip.io/generate") else {
-        print("Invalid API URL")
+        debugLog("Invalid API URL")
         return nil
     }
     guard let body = ImageRequest(image: image, prompt: prompt) else {
-        print("Failed to encode image to PNG")
+        debugLog("Failed to encode image to PNG")
         return nil
     }
     do {
@@ -43,7 +43,7 @@ func uploadDrawing(image: UIImage, prompt: String, settings: GenerationSettings,
         let (data, response) = try await URLSession.shared.data(for: request)
 
         if let httpResponse = response as? HTTPURLResponse {
-            print("Status code: \(httpResponse.statusCode)")
+            debugLog("Status code: \(httpResponse.statusCode)")
         }
 
         let decodedResponse = try JSONDecoder().decode(APIResponseSchema.self, from: data)
@@ -51,13 +51,23 @@ func uploadDrawing(image: UIImage, prompt: String, settings: GenerationSettings,
         guard !decodedResponse.generated_image.isEmpty,
               let imageData = Data(base64Encoded: decodedResponse.generated_image),
               let decodedImage = UIImage(data: imageData) else {
-            print("Failed to decode generated image")
+            debugLog("Failed to decode generated image")
             return nil
         }
         return decodedImage
 
     } catch {
-        print("Upload failed with error: \(error)")
+        debugLog("Upload failed with error: \(error)")
         return nil
     }
+}
+
+/// Wraps print() so logs only emit in DEBUG builds — release builds stay
+/// quiet (App Store reviewers can otherwise see plaintext logs in
+/// Console.app, and noisy logs hurt performance + look unfinished).
+@inline(__always)
+func debugLog(_ items: Any...) {
+    #if DEBUG
+    print(items.map { "\($0)" }.joined(separator: " "))
+    #endif
 }

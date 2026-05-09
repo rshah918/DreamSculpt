@@ -11,12 +11,13 @@ struct PromptBar: View {
     @Binding var isExpanded: Bool
     @FocusState private var isTextFieldFocused: Bool
     @State private var editingPrompt: String = ""
-    @State private var pulseAnimation: Bool = false
     
     // Track keyboard height for automatic push-up
     @State private var keyboardHeight: CGFloat = 0
     
     var hasDrawing: Bool = false
+    var canUndo: Bool = false
+    var strokeCount: Int = 0
     var hasBaseImage: Bool = false
     var onGenerate: () -> Void = {}
     var onCollapse: () -> Void = {}
@@ -32,50 +33,60 @@ struct PromptBar: View {
                 HStack(spacing: 12) {
                     Spacer()
 
-                    // Symmetry quick-cycle — taps cycle off → mirror → flip → quad.
-                    // Lights up when active so the user knows mirroring is on.
-                    SymmetryQuickButton(mode: $appState.symmetryMode)
-
-                    // Clear-canvas button — only fades in when there's something to clear
-                    if hasDrawing {
+                    // Clear-canvas button — appears only after the user has
+                    // drawn 2+ strokes (a single stroke can be undone via the
+                    // undo button, so the clear/trash UI would be redundant).
+                    if strokeCount >= 2 {
                         Button {
                             HapticManager.shared.lightTap()
                             showClearConfirm = true
                         } label: {
                             Image(systemName: "trash")
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(.system(size: 11, weight: .semibold))
                                 .foregroundColor(.white)
-                                .frame(width: 36, height: 36)
+                                .frame(width: 30, height: 30)
                                 .background(Color.black.opacity(0.6))
-                                .cornerRadius(9)
+                                .cornerRadius(8)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: 9)
+                                    RoundedRectangle(cornerRadius: 8)
                                         .stroke(Color.white.opacity(0.2), lineWidth: 1)
                                 )
                         }
                         .transition(.scale.combined(with: .opacity))
                     }
 
-                    // Undo button
-                    Button {
-                        HapticManager.shared.lightTap()
-                        onUndo()
-                    } label: {
-                        Image(systemName: "arrow.uturn.backward")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(.white)
-                            .frame(width: 36, height: 36)
-                            .background(Color.black.opacity(0.6))
-                            .cornerRadius(9)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 9)
-                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                            )
+                    // Undo button — hidden when there's nothing to undo
+                    // (notably at first launch with a restored drawing,
+                    // since assigning `canvasView.drawing` directly bypasses
+                    // PencilKit's undo manager).
+                    if canUndo {
+                        Button {
+                            HapticManager.shared.lightTap()
+                            onUndo()
+                        } label: {
+                            Image(systemName: "arrow.uturn.backward")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(width: 30, height: 30)
+                                .background(Color.black.opacity(0.6))
+                                .cornerRadius(8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                )
+                        }
+                        .transition(.scale.combined(with: .opacity))
                     }
 
-                    GenerateButton(hasDrawing: hasDrawing, hasBaseImage: hasBaseImage, onTrigger: onGenerate)
+                    GenerateButton(
+                        hasDrawing: hasDrawing,
+                        hasBaseImage: hasBaseImage,
+                        onTrigger: onGenerate
+                    )
                 }
                 .animation(.spring(response: 0.3, dampingFraction: 0.75), value: hasDrawing)
+                .animation(.spring(response: 0.3, dampingFraction: 0.75), value: canUndo)
+                .animation(.spring(response: 0.3, dampingFraction: 0.75), value: strokeCount >= 2)
             }
 
             // Prompt bar
@@ -90,7 +101,7 @@ struct PromptBar: View {
                 // Glow effect behind the bar — smaller blur + opacity pulse instead of
                 // scale, so the GPU isn't re-rendering a large blurred shape every frame.
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(ColorPalette.primary.opacity(pulseAnimation ? 0.18 : 0.10))
+                    .fill(ColorPalette.primary.opacity(0.14))
                     .blur(radius: 12)
             )
             .background(
@@ -130,12 +141,6 @@ struct PromptBar: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                     onCollapse()
                 }
-            }
-        }
-        .onAppear {
-            // Subtle pulse animation for attention — slow cycle keeps it light.
-            withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
-                pulseAnimation = true
             }
         }
         // Keyboard handling (fixed the conditional binding error)
@@ -232,7 +237,7 @@ struct PromptBar: View {
                 .font(.subheadline)
                 .foregroundColor(ColorPalette.textPrimary)
                 .scrollContentBackground(.hidden)
-                .frame(height: 80)
+                .frame(minHeight: 80, maxHeight: 150)
                 .padding(12)
                 .background(Color.white.opacity(0.05))
                 .cornerRadius(12)
@@ -281,68 +286,27 @@ struct PromptBar: View {
 
                 Spacer()
 
-                Button {
-                    HapticManager.shared.mediumImpact()
-                    isExpanded = false  // .onChange handles blur, persist, and delayed onCollapse
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                        onGenerate()
+                // Same button as the collapsed bar — shared GenerateButton
+                // component drives both visual state and disable rules so
+                // the two paths can't drift apart.
+                GenerateButton(
+                    hasDrawing: hasDrawing,
+                    hasBaseImage: hasBaseImage,
+                    size: .large,
+                    onTrigger: {
+                        // Collapse the sheet first so .onChange persists
+                        // the draft prompt, then trigger generation after
+                        // the keyboard / sheet animation settles.
+                        isExpanded = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                            onGenerate()
+                        }
                     }
-                } label: {
-                    HStack(spacing: 6) {
-                        Text("Generate")
-                            .font(.subheadline.weight(.semibold))
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 12, weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(ColorPalette.gradientPrimary)
-                    .cornerRadius(10)
-                }
+                )
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
         }
-    }
-}
-
-// MARK: - Symmetry Quick Button
-
-/// One-tap cycle through the four symmetry modes. The icon morphs to match
-/// the active mode and gets a colored fill + glow when symmetry is active,
-/// so users sketching can see at a glance whether their strokes will mirror.
-struct SymmetryQuickButton: View {
-    @Binding var mode: SymmetryMode
-
-    var body: some View {
-        Button {
-            HapticManager.shared.lightTap()
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                mode = mode.next
-            }
-        } label: {
-            Image(systemName: mode.icon)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.white)
-                .frame(width: 36, height: 36)
-                .background(
-                    Group {
-                        if mode == .off {
-                            Color.black.opacity(0.6)
-                        } else {
-                            ColorPalette.gradientPrimary
-                        }
-                    }
-                )
-                .cornerRadius(9)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 9)
-                        .stroke(mode == .off ? Color.white.opacity(0.2) : Color.white.opacity(0.4), lineWidth: 1)
-                )
-                .shadow(color: mode == .off ? .clear : ColorPalette.primary.opacity(0.5), radius: 6)
-        }
-        .accessibilityLabel("Symmetry mode: \(mode.displayName)")
     }
 }
 

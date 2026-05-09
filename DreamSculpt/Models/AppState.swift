@@ -11,43 +11,6 @@ enum BaseImageSource {
     case library
 }
 
-enum SymmetryMode: String, CaseIterable, Identifiable {
-    case off
-    case vertical    // mirror across the vertical centerline (left ↔ right)
-    case horizontal  // mirror across the horizontal centerline (top ↔ bottom)
-    case quad        // 4-way kaleidoscope (both axes)
-
-    var id: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        case .off: return "Off"
-        case .vertical: return "Mirror"
-        case .horizontal: return "Flip"
-        case .quad: return "Quad"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .off: return "rectangle.dashed"
-        case .vertical: return "rectangle.split.2x1"
-        case .horizontal: return "rectangle.split.1x2"
-        case .quad: return "rectangle.split.2x2"
-        }
-    }
-
-    /// Cycle order for tap-to-cycle UI: off → vertical → horizontal → quad → off…
-    var next: SymmetryMode {
-        switch self {
-        case .off: return .vertical
-        case .vertical: return .horizontal
-        case .horizontal: return .quad
-        case .quad: return .off
-        }
-    }
-}
-
 @MainActor
 class AppState: ObservableObject {
     @Published var currentPreviewImage: UIImage? = nil
@@ -89,12 +52,6 @@ class AppState: ObservableObject {
         didSet { UserDefaults.standard.set(pencilOnlyMode, forKey: "pencilOnlyMode") }
     }
 
-    // Mirror/symmetry mode — when set, every user stroke is automatically
-    // reflected across the canvas centerline(s) for kaleidoscope-style drawing.
-    @Published var symmetryMode: SymmetryMode {
-        didSet { UserDefaults.standard.set(symmetryMode.rawValue, forKey: "symmetryMode") }
-    }
-
     // Generation limit
     @Published var showLimitReachedOverlay: Bool = false
     @Published var generationsRemaining: Int = GenerationLimitManager.shared.generationsRemaining
@@ -128,12 +85,6 @@ class AppState: ObservableObject {
         customPrompt = UserDefaults.standard.string(forKey: "customPrompt") ?? Self.defaultPrompt
         showPaperTexture = UserDefaults.standard.object(forKey: "showPaperTexture") as? Bool ?? true
         pencilOnlyMode = UserDefaults.standard.bool(forKey: "pencilOnlyMode")
-        if let raw = UserDefaults.standard.string(forKey: "symmetryMode"),
-           let mode = SymmetryMode(rawValue: raw) {
-            symmetryMode = mode
-        } else {
-            symmetryMode = .off
-        }
 
         if let settingsData = UserDefaults.standard.data(forKey: "generationSettings"),
            let settings = try? JSONDecoder().decode(GenerationSettings.self, from: settingsData) {

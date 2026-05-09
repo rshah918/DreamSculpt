@@ -20,6 +20,7 @@
 		55F51B762E64BF8A00E69011 /* DreamSculptApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B752E64BF8A00E69011 /* DreamSculptApp.swift */; };
 		55F51B782E64BF8A00E69011 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B772E64BF8A00E69011 /* ContentView.swift */; };
 		55F51B7A2E64BF8B00E69011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55F51B792E64BF8B00E69011 /* Assets.xcassets */; };
+		55D1A1A12F00000200000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 55D1A1A12F00000100000001 /* PrivacyInfo.xcprivacy */; };
 		55F51B872E64BF8C00E69011 /* DreamSculptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B862E64BF8C00E69011 /* DreamSculptTests.swift */; };
 		55F51B912E64BF8C00E69011 /* DreamSculptUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B902E64BF8C00E69011 /* DreamSculptUITests.swift */; };
 		55F51B932E64BF8C00E69011 /* DreamSculptUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51B922E64BF8C00E69011 /* DreamSculptUITestsLaunchTests.swift */; };
@@ -44,6 +45,7 @@
 		55F51BD02E66200000E69011 /* SplashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BCF2E66200000E69011 /* SplashView.swift */; };
 		55F51BD22E66200100E69011 /* CanvasHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BD12E66200100E69011 /* CanvasHeader.swift */; };
 		55F51BD42E66300000E69011 /* RoundedCorner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55F51BD32E66300000E69011 /* RoundedCorner.swift */; };
+		55D1A1A12F00000400000001 /* ContentModeration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D1A1A12F00000300000001 /* ContentModeration.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,6 +71,7 @@
 		5511CE612F8B0462008D5C5E /* GenerationLimitManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenerationLimitManager.swift; sourceTree = "<group>"; };
 		5517DF312F54EACB00AA7587 /* GenerateButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GenerateButton.swift; sourceTree = "<group>"; };
 		553032932F8B09BA0012F845 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		55D1A1A12F00000100000001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		55E8109F2F95B22B0053C2C0 /* BasePhotoControlBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BasePhotoControlBar.swift; sourceTree = "<group>"; };
 		55E810A02F95B22B0053C2C0 /* CameraLiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraLiveView.swift; sourceTree = "<group>"; };
 		55E810A12F95B22B0053C2C0 /* CameraRightPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraRightPanel.swift; sourceTree = "<group>"; };
@@ -107,6 +110,7 @@
 		55F51BCF2E66200000E69011 /* SplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashView.swift; sourceTree = "<group>"; };
 		55F51BD12E66200100E69011 /* CanvasHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasHeader.swift; sourceTree = "<group>"; };
 		55F51BD32E66300000E69011 /* RoundedCorner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedCorner.swift; sourceTree = "<group>"; };
+		55D1A1A12F00000300000001 /* ContentModeration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentModeration.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -159,6 +163,7 @@
 			isa = PBXGroup;
 			children = (
 				553032932F8B09BA0012F845 /* Info.plist */,
+				55D1A1A12F00000100000001 /* PrivacyInfo.xcprivacy */,
 				55F51BAA2E66000000E69011 /* Models */,
 				55F51BAB2E66000000E69011 /* Managers */,
 				55F51BAC2E66000000E69011 /* Views */,
@@ -243,6 +248,7 @@
 				55F51BB72E66000400E69011 /* ColorPalette.swift */,
 				55F51BB92E66000500E69011 /* GlassmorphicModifier.swift */,
 				55F51BD32E66300000E69011 /* RoundedCorner.swift */,
+				55D1A1A12F00000300000001 /* ContentModeration.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -352,6 +358,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				55F51B7A2E64BF8B00E69011 /* Assets.xcassets in Resources */,
+				55D1A1A12F00000200000001 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -409,6 +416,7 @@
 				55ECF6482F8C866F00CF367F /* StoreManager.swift in Sources */,
 				5517DF322F54EACB00AA7587 /* GenerateButton.swift in Sources */,
 				55F51BD42E66300000E69011 /* RoundedCorner.swift in Sources */,
+				55D1A1A12F00000400000001 /* ContentModeration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -575,7 +583,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DreamSculpt/Info.plist;
-				INFOPLIST_KEY_NSCameraUsageDescription = "DreamSculpt needs camera access to take photos for your canvas";
+				INFOPLIST_KEY_NSCameraUsageDescription = "DreamSculpt uses your camera to capture a photo as a starting point for AI editing.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -585,7 +593,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.10;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.DreamSculpt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -605,7 +613,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DreamSculpt/Info.plist;
-				INFOPLIST_KEY_NSCameraUsageDescription = "DreamSculpt needs camera access to take photos for your canvas";
+				INFOPLIST_KEY_NSCameraUsageDescription = "DreamSculpt uses your camera to capture a photo as a starting point for AI editing.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -615,7 +623,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.10;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.DreamSculpt;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

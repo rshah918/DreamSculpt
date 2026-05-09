@@ -122,22 +122,17 @@ struct AIPreviewPanel: View {
             .frame(width: 60, height: 88)
             .contentShape(Rectangle())
             .onTapGesture {
-                HapticManager.shared.lightTap()
-                offset = .zero
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                    isDismissed = false
-                }
+                restorePreview()
             }
             .gesture(
+                // Any drag on the grabber restores the preview — direction
+                // doesn't matter. The grabber's only purpose is "wake the
+                // preview back up", and forcing a leftward swipe felt like
+                // a hidden interaction. Default minimumDistance (10pt)
+                // already prevents tap-jitter from misfiring.
                 DragGesture()
-                    .onEnded { value in
-                        if value.translation.width < -30 {
-                            HapticManager.shared.lightTap()
-                            offset = .zero
-                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                isDismissed = false
-                            }
-                        }
+                    .onEnded { _ in
+                        restorePreview()
                     }
             )
             .position(x: geo.size.width - 4, y: grabberY)
@@ -229,6 +224,14 @@ struct AIPreviewPanel: View {
             withAnimation(.easeOut(duration: 0.2)) { resetZoom() }
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isExpanded)
+    }
+
+    private func restorePreview() {
+        HapticManager.shared.lightTap()
+        offset = .zero
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            isDismissed = false
+        }
     }
 
     private func resetZoom() {
@@ -392,28 +395,20 @@ struct AIPreviewPanel: View {
                 dragOffset = value.translation
             }
             .onEnded { value in
-                // Two ways to dismiss, covering both intents:
-                //   1. Slow slide off — the preview's final center crosses the
-                //      screen's right edge (user is "moving it out of the way").
-                //   2. Flick / throw — quick gesture with rightward momentum,
-                //      even if the finger didn't actually travel far.
+                // Dismiss only when the user has deliberately dragged the
+                // preview past the right edge — i.e. its final center
+                // crosses out of the screen. No velocity / momentum check;
+                // a flick that doesn't travel past the edge snaps back.
                 let actual = value.translation.width
-                let predicted = value.predictedEndTranslation.width
-                let absHeight = abs(value.translation.height)
-
                 let finalCenterX = (geo.size.width - 85) + offset.width + actual
-                let slidPastEdge = finalCenterX > geo.size.width && actual > 0
+                let draggedOffRight = finalCenterX > geo.size.width
 
-                let momentumThrow = (actual > 60 || predicted > 100) &&
-                    max(actual, predicted) > absHeight * 0.7
-
-                let swipedOffRight = slidPastEdge || momentumThrow
-                if swipedOffRight {
+                if draggedOffRight {
                     HapticManager.shared.mediumImpact()
                     let releaseY = 170 + offset.height + value.translation.height
                     grabberY = clampedGrabberY(releaseY, in: geo)
-                    // Persist the throw translation into `offset` so the
-                    // preview fades out at the throw position (no snap-back).
+                    // Persist the release translation into `offset` so the
+                    // preview fades out at the drop position (no snap-back).
                     // `offset` is reset to .zero in every restore path before
                     // re-showing, so the next reveal starts at default.
                     offset = CGSize(
@@ -437,7 +432,7 @@ struct AIPreviewPanel: View {
                     offset = proposed
                     dragOffset = .zero
                 } else {
-                    // Snap back when the user tried to fling past an edge.
+                    // Snap back when the user tried to drag past an edge.
                     withAnimation(.spring(response: 0.32, dampingFraction: 0.8)) {
                         offset = clamped
                         dragOffset = .zero

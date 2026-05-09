@@ -12,6 +12,9 @@ struct ContentView: View {
     @State private var isExpanded: Bool = false
     @State private var isPromptBarExpanded: Bool = false
     @State private var hasCanvasDrawing: Bool = false
+    @State private var canvasCanUndo: Bool = false
+    @State private var canvasStrokeCount: Int = 0
+    @State private var showContentBlockedAlert: Bool = false
     @State private var generateAction: (() -> Void)?
     @State private var requestCanvasFocus: (() -> Void)?
     @State private var undoAction: (() -> Void)?
@@ -54,14 +57,52 @@ struct ContentView: View {
                                 onDrawingChanged: { hasDrawing in
                                     hasCanvasDrawing = hasDrawing
                                 },
+                                onCanUndoChanged: { canUndo in
+                                    canvasCanUndo = canUndo
+                                },
+                                onStrokeCountChanged: { count in
+                                    canvasStrokeCount = count
+                                },
                                 requestFocus: $requestCanvasFocus,
                                 undoAction: $undoAction,
                                 clearAction: $clearCanvasAction,
                                 resignFocus: $resignCanvasFocus,
                                 canvasReady: canvasReady,
-                                pencilOnlyMode: appState.pencilOnlyMode,
-                                symmetryMode: appState.symmetryMode
+                                pencilOnlyMode: appState.pencilOnlyMode
                             )
+
+                            // AI Preview Panel — placed inside the split view's
+                            // content closure so the camera panel slides OVER it
+                            // (z-above) as the user drags the panel open. Lifts
+                            // above the prompt bar when expanded so the
+                            // full-screen preview overlay isn't clipped under it.
+                            AIPreviewPanel(
+                                image: appState.currentPreviewImage,
+                                isLoading: appState.isLoading,
+                                isExpanded: $isExpanded,
+                                offset: $previewOffset,
+                                sessionImages: appState.sessionImages,
+                                sessionIndex: Binding(
+                                    get: { appState.sessionIndex },
+                                    set: { appState.setSessionIndex($0) }
+                                ),
+                                onLoadToCanvas: { image in
+                                    appState.setBaseImage(image)
+                                    isExpanded = false
+                                },
+                                onSaveToPhotos: { image in
+                                    UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
+                                    // Also persist the untouched original when the base photo
+                                    // came from the camera — that capture isn't in the user's
+                                    // library yet, and they likely want both side by side.
+                                    if appState.baseImageSource == .camera, let original = appState.baseImage {
+                                        UIImageWriteToSavedPhotosAlbum(original, nil, nil, nil)
+                                    }
+                                    HapticManager.shared.lightTap()
+                                },
+                                hideForCameraPanel: appState.isSplitOpen
+                            )
+                            .zIndex(isExpanded ? 10 : 0)
 
                             // Tap-outside catcher — collapses the prompt bar when expanded.
                             // Sits behind the prompt bar so taps inside the bar still reach it.
@@ -81,8 +122,18 @@ struct ContentView: View {
                                 PromptBar(
                                     isExpanded: $isPromptBarExpanded,
                                     hasDrawing: hasCanvasDrawing,
+                                    canUndo: canvasCanUndo,
+                                    strokeCount: canvasStrokeCount,
                                     hasBaseImage: appState.baseImage != nil,
                                     onGenerate: {
+                                        // Client-side moderation. The backend
+                                        // also filters, but Apple expects an
+                                        // on-device check for review.
+                                        if ContentModeration.shouldBlock(prompt: appState.customPrompt) {
+                                            HapticManager.shared.generationFailed()
+                                            showContentBlockedAlert = true
+                                            return
+                                        }
                                         if GenerationLimitManager.shared.canGenerate() {
                                             generateAction?()
                                             return
@@ -127,33 +178,6 @@ struct ContentView: View {
                     Spacer()
                 }
 
-                // AI Preview Panel - passes session history for slider
-                AIPreviewPanel(
-                    image: appState.currentPreviewImage,
-                    isLoading: appState.isLoading,
-                    isExpanded: $isExpanded,
-                    offset: $previewOffset,
-                    sessionImages: appState.sessionImages,
-                    sessionIndex: Binding(
-                        get: { appState.sessionIndex },
-                        set: { appState.setSessionIndex($0) }
-                    ),
-                    onLoadToCanvas: { image in
-                        appState.setBaseImage(image)
-                        isExpanded = false
-                    },
-                    onSaveToPhotos: { image in
-                        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-                        // Also persist the untouched original when the base photo
-                        // came from the camera — that capture isn't in the user's
-                        // library yet, and they likely want both side by side.
-                        if appState.baseImageSource == .camera, let original = appState.baseImage {
-                            UIImageWriteToSavedPhotosAlbum(original, nil, nil, nil)
-                        }
-                        HapticManager.shared.lightTap()
-                    },
-                    hideForCameraPanel: appState.isSplitOpen
-                )
 
                 // History Drawer overlay
                 HistoryDrawer(
@@ -182,6 +206,11 @@ struct ContentView: View {
             } else {
                 requestCanvasFocus?()
             }
+        }
+        .alert("Prompt blocked", isPresented: $showContentBlockedAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Your prompt contains terms that violate the content guidelines. Please edit it and try again.")
         }
     }
 

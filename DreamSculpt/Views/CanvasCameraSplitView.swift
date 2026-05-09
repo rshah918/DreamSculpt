@@ -16,7 +16,6 @@ struct CanvasCameraSplitView<Content: View>: View {
     @State private var showCamera = false
     @State private var hasPulsed = false
     @State private var pulseGeneration: Int = 0
-    @State private var edgeGlowBreathing = false
     @State private var isPulsing = false
     /// When the panel is open, the tab sits on the panel side of the divider so it
     /// reads as "pull right to close". Toggled only at snap, so it animates cleanly.
@@ -39,7 +38,7 @@ struct CanvasCameraSplitView<Content: View>: View {
                 // Subtle right-edge glow in canvas mode — hints at the hidden camera panel.
                 // Fades out as the panel opens; gently breathes to stay inviting.
                 LinearGradient(
-                    colors: [.clear, ColorPalette.primary.opacity(edgeGlowBreathing ? 0.28 : 0.10)],
+                    colors: [.clear, ColorPalette.primary.opacity(0.18)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
@@ -48,6 +47,14 @@ struct CanvasCameraSplitView<Content: View>: View {
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .opacity(Double(max(0, 1 - splitFraction / 0.15)))
                 .allowsHitTesting(false)
+
+                // "Sketch" label — placed BEFORE the camera panel so the
+                // panel slides in over it as the user drags.
+                modeLabel(icon: "pencil", text: "Sketch")
+                    .position(x: dividerX(geo) / 2, y: geo.size.height * 0.25)
+                    .opacity(isDragging ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.18), value: isDragging)
+                    .allowsHitTesting(false)
 
                 // Camera panel slides in from the right.
                 // Width snapped to whole pixels — subpixel widths cause edge re-sampling
@@ -94,25 +101,26 @@ struct CanvasCameraSplitView<Content: View>: View {
                         .allowsHitTesting(false)
                 }
 
-                // Mode labels — appear while dragging, vanish on release
-                ZStack {
-                    modeLabel(icon: "pencil", text: "Sketch")
-                        .position(x: dividerX(geo) / 2, y: geo.size.height * 0.25)
-
-                    modeLabel(icon: "camera.fill", text: "Edit Photo")
-                        .position(
-                            x: dividerX(geo) + geo.size.width * splitFraction / 2,
-                            y: geo.size.height * 0.25
-                        )
-                        .opacity(splitFraction > 0.25 ? 1 : 0)
-                }
-                .opacity(isDragging ? 1 : 0)
-                .animation(.easeInOut(duration: 0.18), value: isDragging)
-                .allowsHitTesting(false)
+                // "Edit Photo" label — stays ABOVE the camera panel so it
+                // reads on the panel area as the panel slides in.
+                modeLabel(icon: "camera.fill", text: "Edit Photo")
+                    .position(
+                        x: dividerX(geo) + geo.size.width * splitFraction / 2,
+                        y: geo.size.height * 0.25
+                    )
+                    .opacity(isDragging && splitFraction > 0.25 ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.18), value: isDragging)
+                    .allowsHitTesting(false)
 
                 // Drag tab — sits flush against the divider; flips to the panel side when open
                 DividerTabView(splitFraction: splitFraction, isDragging: isDragging, onPanelSide: tabOnPanelSide)
                     .position(x: handleX(geo), y: geo.size.height * 0.45)
+                    .onTapGesture {
+                        // Tap doesn't open the panel — but it demos the
+                        // motion so the user learns "this is a drag handle"
+                        // instead of thinking it's broken.
+                        performTapHint()
+                    }
                     .gesture(
                         DragGesture(minimumDistance: 1, coordinateSpace: .global)
                             .onChanged { value in
@@ -138,10 +146,6 @@ struct CanvasCameraSplitView<Content: View>: View {
                     )
             }
             .onAppear {
-                // Gentle breathing on the edge glow
-                withAnimation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true)) {
-                    edgeGlowBreathing = true
-                }
                 guard !hasPulsed else { return }
                 hasPulsed = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
@@ -254,15 +258,46 @@ struct CanvasCameraSplitView<Content: View>: View {
             .rootViewController?.view.viewWithTag(200)
     }
 
+    // MARK: - Tap hint (single short peek so a tap-on-the-grabber teaches
+    // the user "this is a drag handle, drag it open to see the panel")
+
+    private func performTapHint() {
+        pulseGeneration += 1
+        let gen = pulseGeneration
+        let peek: CGFloat = 0.18
+        let step: Double = 0.28
+        let pause: Double = 0.18
+
+        HapticManager.shared.lightTap()
+        guard !isDragging else { return }
+        // Hide the tool picker for the duration of the hint peek.
+        resignCanvasFirstResponder()
+        isPulsing = true
+        withAnimation(.easeInOut(duration: step)) { splitFraction = peek }
+        DispatchQueue.main.asyncAfter(deadline: .now() + step + pause) {
+            guard pulseGeneration == gen, !isDragging else { return }
+            withAnimation(.easeInOut(duration: step)) { splitFraction = 0 }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + step * 2 + pause) {
+            guard pulseGeneration == gen else { return }
+            isPulsing = false
+            restoreCanvasFirstResponder()
+        }
+    }
+
     // MARK: - Startup pulse (entire panel peeks in as CTA)
 
     private func performPulse() {
         pulseGeneration += 1
         let gen = pulseGeneration
-        let peek: CGFloat = 0.30   // panel peeks 30% of screen width
+        let peek: CGFloat = 0.20   // panel peeks 30% of screen width
         let step: Double = 0.70    // slower in/out
         let pause: Double = 0.55   // linger before retreating
         let cycle = step * 2 + pause
+
+        // Hide the PencilKit tool picker for the duration of the pulse —
+        // its floating UI clashes with the panel peeking in.
+        resignCanvasFirstResponder()
 
         for i in 0..<3 {
             let base = Double(i) * cycle
@@ -280,6 +315,12 @@ struct CanvasCameraSplitView<Content: View>: View {
                 guard pulseGeneration == gen else { return }
                 isPulsing = false
             }
+        }
+
+        // Restore tool picker after all 3 cycles finish.
+        DispatchQueue.main.asyncAfter(deadline: .now() + cycle * 3) {
+            guard pulseGeneration == gen else { return }
+            restoreCanvasFirstResponder()
         }
     }
 }

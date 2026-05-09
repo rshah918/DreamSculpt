@@ -7,7 +7,7 @@ import SwiftUI
 import UIKit
 import PencilKit
 
-// MARK: - Mock Mode Toggle (DELETE LATER)
+// MARK: - Mock Mode Toggle
 #if DEBUG
 let USE_MOCK_GENERATION = true
 #else
@@ -24,13 +24,14 @@ struct CanvasView: UIViewRepresentable {
     var onGenerationComplete: ((UIImage, UIImage) -> Void)?
     @Binding var triggerGeneration: (() -> Void)?
     var onDrawingChanged: ((Bool) -> Void)?
+    var onCanUndoChanged: ((Bool) -> Void)?
+    var onStrokeCountChanged: ((Int) -> Void)?
     @Binding var requestFocus: (() -> Void)?
     @Binding var undoAction: (() -> Void)?
     @Binding var clearAction: (() -> Void)?
     @Binding var resignFocus: (() -> Void)?
     var canvasReady: Bool = true
     var pencilOnlyMode: Bool = false
-    var symmetryMode: SymmetryMode = .off
 
     func makeUIView(context: Context) -> UIView {
         let containerView = UIView()
@@ -61,9 +62,9 @@ struct CanvasView: UIViewRepresentable {
         // Coordinator references
         context.coordinator.canvasView = canvasView
         context.coordinator.backgroundImageView = backgroundImageView
-        // Seed the stroke-count tracker so symmetry mirroring only fires for
-        // strokes the user adds *after* mount — not the restored ones.
-        context.coordinator.trackedStrokeCount = canvasView.drawing.strokes.count
+        // Baseline for undo-button visibility. Strokes restored from disk
+        // aren't in PencilKit's undo manager, so they don't count as undoable.
+        context.coordinator.strokesAtLaunch = canvasView.drawing.strokes.count
 
         canvasView.delegate = context.coordinator
 
@@ -136,12 +137,24 @@ struct CanvasView: UIViewRepresentable {
         private let debounceManager = DebounceManager.shared
         private var pendingDrawing: PKDrawing?
         private var saveDebounceItem: DispatchWorkItem?
-
-        /// Tracks how many strokes were in the drawing the last time we observed
-        /// it. Used by symmetry mirroring to detect strokes added by the user
-        /// (so we can mirror them) and to avoid re-mirroring strokes we just
-        /// appended ourselves.
-        var trackedStrokeCount: Int = 0
+        /// Last `hasDrawing` value we forwarded to SwiftUI. Used to skip
+        /// no-op `onDrawingChanged` calls during a stroke, which would
+        /// otherwise invalidate ContentView state on every PencilKit tick.
+        private var lastReportedHasDrawing: Bool?
+        /// Last `canUndo` value we forwarded to SwiftUI. Computed as
+        /// `currentStrokes > strokesAtLaunch` so the prompt bar can hide
+        /// its undo button when there's nothing to undo (notably at first
+        /// launch with a restored drawing — assigning `canvasView.drawing`
+        /// directly bypasses the undo manager).
+        private var lastReportedCanUndo: Bool?
+        /// Last stroke count forwarded to SwiftUI. Lets the prompt bar
+        /// gate the trash button on >=2 strokes.
+        private var lastReportedStrokeCount: Int?
+        /// Number of strokes present immediately after restoring from
+        /// disk. PencilKit's undo manager only knows about strokes the
+        /// user added in this session — anything <= this baseline can't
+        /// actually be undone. Resets to 0 after `clearAction`.
+        var strokesAtLaunch: Int = 0
 
         private static var persistedDrawingURL: URL {
             let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -185,15 +198,25 @@ struct CanvasView: UIViewRepresentable {
                 }
                 self.parent.undoAction = { [weak self] in
                     self?.canvasView?.undoManager?.undo()
+                    self?.notifyCanUndoChanged()
                 }
                 self.parent.clearAction = { [weak self] in
                     guard let canvasView = self?.canvasView else { return }
                     canvasView.drawing = PKDrawing()
+                    // Drop the undo history too — otherwise PencilKit retains
+                    // every stroke the user just cleared, potentially many MBs
+                    // of vector data, indefinitely.
+                    canvasView.undoManager?.removeAllActions()
                     self?.pendingDrawing = nil
-                    self?.trackedStrokeCount = 0
                     self?.saveDebounceItem?.cancel()
+                    self?.lastReportedHasDrawing = false
+                    // Reset the launch baseline — the user's next stroke
+                    // becomes the first undoable one again.
+                    self?.strokesAtLaunch = 0
                     Coordinator.deletePersistedDrawing()
                     self?.parent.onDrawingChanged?(false)
+                    self?.notifyCanUndoChanged()
+                    self?.notifyStrokeCountChanged(0)
                 }
                 self.parent.resignFocus = { [weak self] in
                     self?.canvasView?.resignFirstResponder()
@@ -202,92 +225,29 @@ struct CanvasView: UIViewRepresentable {
         }
 
         func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
-            // Apply symmetry to any strokes the user just added before we
-            // record the new drawing — that way the mirrored strokes are
-            // captured in the persisted state and the generation snapshot.
-            applySymmetryIfNeeded(on: canvasView)
-
             pendingDrawing = canvasView.drawing
-            trackedStrokeCount = canvasView.drawing.strokes.count
-            let hasDrawing = !canvasView.drawing.bounds.isEmpty
-            Task { @MainActor in
-                parent.onDrawingChanged?(hasDrawing)
-            }
-            // Persist (debounced). If the drawing was just emptied, drop any
-            // stale file rather than writing an empty one.
-            if hasDrawing {
-                schedulePersist(canvasView.drawing)
-            } else {
-                saveDebounceItem?.cancel()
-                Coordinator.deletePersistedDrawing()
-            }
-        }
-
-        // MARK: - Symmetry mirroring
-
-        /// If symmetry is enabled and the user has added strokes since the
-        /// last change, reflect those strokes across the configured axis/axes
-        /// and append the mirrors to the drawing. Updates `trackedStrokeCount`
-        /// to the post-mirror total so the next callback (triggered by our own
-        /// append) doesn't re-mirror them.
-        private func applySymmetryIfNeeded(on canvasView: PKCanvasView) {
-            let mode = parent.symmetryMode
-            guard mode != .off else { return }
-
-            let currentCount = canvasView.drawing.strokes.count
-            let added = currentCount - trackedStrokeCount
-            // Only mirror when strokes were *added* (not removed by undo/eraser).
-            guard added > 0 else { return }
-
-            let canvasSize = canvasView.bounds.size
-            guard canvasSize.width > 0, canvasSize.height > 0 else { return }
-
-            let userStrokes = Array(canvasView.drawing.strokes.suffix(added))
-            var mirrored: [PKStroke] = []
-            for stroke in userStrokes {
-                switch mode {
-                case .off:
-                    break
-                case .vertical:
-                    mirrored.append(reflect(stroke, axis: .vertical, canvasSize: canvasSize))
-                case .horizontal:
-                    mirrored.append(reflect(stroke, axis: .horizontal, canvasSize: canvasSize))
-                case .quad:
-                    let v = reflect(stroke, axis: .vertical, canvasSize: canvasSize)
-                    let h = reflect(stroke, axis: .horizontal, canvasSize: canvasSize)
-                    let vh = reflect(v, axis: .horizontal, canvasSize: canvasSize)
-                    mirrored.append(contentsOf: [v, h, vh])
+            // strokes.isEmpty is O(1); drawing.bounds is O(n) over every stroke.
+            // This callback fires continuously during a stroke (60+/sec on
+            // ProMotion), so the cheap check matters.
+            let hasDrawing = !canvasView.drawing.strokes.isEmpty
+            // Only forward to SwiftUI when the value actually flips. Otherwise
+            // we invalidate ContentView state on every PencilKit tick.
+            if hasDrawing != lastReportedHasDrawing {
+                lastReportedHasDrawing = hasDrawing
+                Task { @MainActor in
+                    parent.onDrawingChanged?(hasDrawing)
                 }
             }
-            guard !mirrored.isEmpty else { return }
-
-            // Pre-bump the tracked count so the synchronous re-entry triggered
-            // by the append below sees `added == 0` and bails out.
-            trackedStrokeCount = currentCount + mirrored.count
-            canvasView.drawing.strokes.append(contentsOf: mirrored)
-        }
-
-        private enum SymmetryAxis { case vertical, horizontal }
-
-        /// Reflect a stroke across the canvas centerline. Vertical axis mirrors
-        /// left↔right; horizontal mirrors top↔bottom. The reflection is composed
-        /// onto whatever transform the stroke already has (typically `.identity`
-        /// for fresh user strokes, but non-identity for an already-mirrored stroke
-        /// when we apply quad symmetry).
-        private func reflect(_ stroke: PKStroke, axis: SymmetryAxis, canvasSize: CGSize) -> PKStroke {
-            var copy = stroke
-            let mirror: CGAffineTransform
-            switch axis {
-            case .vertical:
-                // x' = width - x  →  scale x by -1, then translate by +width
-                mirror = CGAffineTransform(scaleX: -1, y: 1)
-                    .concatenating(CGAffineTransform(translationX: canvasSize.width, y: 0))
-            case .horizontal:
-                mirror = CGAffineTransform(scaleX: 1, y: -1)
-                    .concatenating(CGAffineTransform(translationX: 0, y: canvasSize.height))
-            }
-            copy.transform = copy.transform.concatenating(mirror)
-            return copy
+            // Also surface canUndo / strokeCount on every drawing change.
+            // canvasViewDidEndUsingTool isn't always reliable (PencilKit can
+            // skip it for edge cases like very short taps or tool-less
+            // strokes), so we drive these from the drawing-changed callback
+            // too. Both notify methods are change-detected internally, so a
+            // mid-stroke tick that doesn't flip the value is a no-op.
+            notifyCanUndoChanged()
+            notifyStrokeCountChanged(canvasView.drawing.strokes.count)
+            // Persistence is handled in canvasViewDidEndUsingTool — no point
+            // re-scheduling the disk write on every mid-stroke tick.
         }
 
         func canvasViewDidBeginUsingTool(_ canvasView: PKCanvasView) {
@@ -296,15 +256,52 @@ struct CanvasView: UIViewRepresentable {
 
         func canvasViewDidEndUsingTool(_ canvasView: PKCanvasView) {
             debounceManager.strokeEnded()
+            // Persist on stroke completion. If the drawing was just emptied,
+            // drop the stale file instead of writing an empty one.
+            if canvasView.drawing.strokes.isEmpty {
+                saveDebounceItem?.cancel()
+                Coordinator.deletePersistedDrawing()
+            } else {
+                schedulePersist(canvasView.drawing)
+            }
+            // PencilKit just registered (or removed) an undo action for
+            // this stroke — surface the new state so the prompt bar can
+            // show/hide its undo button.
+            notifyCanUndoChanged()
+            notifyStrokeCountChanged(canvasView.drawing.strokes.count)
+        }
+
+        private func notifyStrokeCountChanged(_ count: Int) {
+            guard count != lastReportedStrokeCount else { return }
+            lastReportedStrokeCount = count
+            Task { @MainActor in
+                parent.onStrokeCountChanged?(count)
+            }
+        }
+
+        private func notifyCanUndoChanged() {
+            // Don't read `undoManager.canUndo` — PencilKit registers its
+            // per-stroke undo action on a later runloop tick than the
+            // delegate callback, so any synchronous (or even async) read
+            // here was off-by-one and the button only appeared after the
+            // second stroke. Comparing the live stroke count against the
+            // baseline at launch gives the same answer (true iff the user
+            // has added strokes this session) without the timing dance.
+            let currentStrokes = canvasView?.drawing.strokes.count ?? 0
+            let canUndo = currentStrokes > strokesAtLaunch
+            guard canUndo != lastReportedCanUndo else { return }
+            lastReportedCanUndo = canUndo
+            Task { @MainActor in
+                parent.onCanUndoChanged?(canUndo)
+            }
         }
 
         func performGeneration() {
-            let hasDrawing = pendingDrawing != nil && !pendingDrawing!.bounds.isEmpty
-            let hasBase = parent.baseImage != nil
-
-            guard hasDrawing || hasBase else { return }
-            guard debounceManager.shouldAllowRequest() else { return }
-
+            // The Generate button is the only gate — it's `.disabled` when
+            // input is empty, while loading, or when nothing has changed
+            // since the last successful generation. Don't add silent
+            // server-side rate limiting here: if the user tapped a live
+            // button, fire the request.
             let drawing = pendingDrawing ?? PKDrawing()
             let currentSketch = getCompositeImage(from: drawing)
             let prompt = parent.customPrompt
@@ -343,29 +340,95 @@ struct CanvasView: UIViewRepresentable {
             pendingDrawing = nil
         }
 
-        func getCompositeImage(from drawing: PKDrawing, targetSize: CGSize = CGSize(width: 170.666, height: 170.666)) -> UIImage {
-            UIGraphicsBeginImageContextWithOptions(targetSize, false, 0)
+        func getCompositeImage(from drawing: PKDrawing, targetSize: CGSize = CGSize(width: 1024, height: 1024)) -> UIImage {
+            if let baseImage = parent.baseImage,
+               let composed = baseImageComposite(from: drawing, baseImage: baseImage, targetSize: targetSize) {
+                return composed
+            }
+            return sketchOnlyComposite(from: drawing, targetSize: targetSize)
+        }
+
+        /// Composite when a base image is loaded. The output canvas is square
+        /// (the API expects square input — anything else gets squashed back to
+        /// square server-side and returns stretched). The base image is drawn
+        /// aspect-fit inside that square (with white letterboxing), and the
+        /// strokes are drawn into the same fit rect so they overlay the base
+        /// at the position the user actually drew them on screen.
+        private func baseImageComposite(from drawing: PKDrawing, baseImage: UIImage, targetSize: CGSize) -> UIImage? {
+            guard let bgFrame = backgroundImageView?.frame,
+                  bgFrame.width > 0, bgFrame.height > 0 else { return nil }
+
+            // Where the base image is actually displayed inside the background
+            // image view (aspect-fit). The image view shares the canvas's
+            // coordinate space, so this rect is also valid in canvas coords.
+            let canvasFit = min(bgFrame.width / baseImage.size.width,
+                                bgFrame.height / baseImage.size.height)
+            let canvasDisplayed = CGSize(width: baseImage.size.width * canvasFit,
+                                         height: baseImage.size.height * canvasFit)
+            let baseDisplayRect = CGRect(
+                x: bgFrame.midX - canvasDisplayed.width / 2,
+                y: bgFrame.midY - canvasDisplayed.height / 2,
+                width: canvasDisplayed.width,
+                height: canvasDisplayed.height
+            )
+
+            // Square output. Aspect-fit the base image inside it.
+            let outputSide = max(targetSize.width, targetSize.height)
+            let outputSize = CGSize(width: outputSide, height: outputSide)
+            let outputFit = min(outputSide / baseImage.size.width,
+                                outputSide / baseImage.size.height)
+            let baseInOutput = CGSize(width: baseImage.size.width * outputFit,
+                                      height: baseImage.size.height * outputFit)
+            let baseInOutputRect = CGRect(
+                x: (outputSide - baseInOutput.width) / 2,
+                y: (outputSide - baseInOutput.height) / 2,
+                width: baseInOutput.width,
+                height: baseInOutput.height
+            )
+
+            // scale: 1.0 — render exactly outputSide×outputSide pixels, not
+            // multiplied by device DPI. We control upload resolution explicitly.
+            UIGraphicsBeginImageContextWithOptions(outputSize, true, 1.0)
+            UIColor.white.setFill()
+            UIRectFill(CGRect(origin: .zero, size: outputSize))
+            baseImage.draw(in: baseInOutputRect)
+
+            if !drawing.bounds.isEmpty {
+                // Render the slice of the canvas overlapping the displayed base
+                // image, then place it into the same fit rect on the output.
+                // Both rects share the base image's aspect ratio, so this is a
+                // uniform scale — strokes land where the user drew them.
+                let strokeImage = drawing.image(from: baseDisplayRect, scale: 1.0)
+                strokeImage.draw(in: baseInOutputRect)
+            }
+
+            let composed = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            return composed
+        }
+
+        /// Pure sketch (no base image) — keep the legacy behavior of scaling the
+        /// drawing's bounding box to fill the frame, since with no spatial
+        /// reference the AI input is cleaner when the sketch dominates.
+        private func sketchOnlyComposite(from drawing: PKDrawing, targetSize: CGSize) -> UIImage {
+            UIGraphicsBeginImageContextWithOptions(targetSize, false, 1.0)
             UIColor.white.setFill()
             UIRectFill(CGRect(origin: .zero, size: targetSize))
 
-            if let baseImage = parent.baseImage {
-                let scale = min(targetSize.width/baseImage.size.width, targetSize.height/baseImage.size.height)
-                let newSize = CGSize(width: baseImage.size.width*scale, height: baseImage.size.height*scale)
-                let origin = CGPoint(x: (targetSize.width-newSize.width)/2, y: (targetSize.height-newSize.height)/2)
-                baseImage.draw(in: CGRect(origin: origin, size: newSize))
-            }
-
             if !drawing.bounds.isEmpty {
                 let drawingImage = drawing.image(from: drawing.bounds, scale: 1.0)
-                let scale = min(targetSize.width/drawingImage.size.width, targetSize.height/drawingImage.size.height)
-                let newSize = CGSize(width: drawingImage.size.width*scale, height: drawingImage.size.height*scale)
-                let origin = CGPoint(x: (targetSize.width-newSize.width)/2, y: (targetSize.height-newSize.height)/2)
+                let scale = min(targetSize.width / drawingImage.size.width,
+                                targetSize.height / drawingImage.size.height)
+                let newSize = CGSize(width: drawingImage.size.width * scale,
+                                     height: drawingImage.size.height * scale)
+                let origin = CGPoint(x: (targetSize.width - newSize.width) / 2,
+                                     y: (targetSize.height - newSize.height) / 2)
                 drawingImage.draw(in: CGRect(origin: origin, size: newSize))
             }
 
-            let compositeImage = UIGraphicsGetImageFromCurrentImageContext()
+            let composite = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
-            return compositeImage ?? UIImage()
+            return composite ?? UIImage()
         }
     }
 }

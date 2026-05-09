@@ -7,38 +7,49 @@
 import SwiftUI
 
 struct GenerateButton: View {
+    enum Size {
+        case compact   // small button next to the prompt bar
+        case large     // wide button at the bottom of the expanded prompt sheet
+    }
+
     @EnvironmentObject var appState: AppState
     var hasDrawing: Bool
     var hasBaseImage: Bool = false
+    var size: Size = .compact
     var onTrigger: () -> Void
 
+    /// Disabled only while a generation is already in flight. No other
+    /// gating — empty canvas, repeat input, etc. all still fire.
     private var isDisabled: Bool {
-        // Enable when there's a sketch, a base image, or a customized prompt —
-        // any of which is enough input for the model to act on.
-        appState.isLoading || (!hasDrawing && !hasBaseImage && !appState.hasCustomPrompt)
+        appState.isLoading
     }
+
+    private var iconSize: CGFloat { size == .large ? 14 : 12 }
+    private var textSize: CGFloat { size == .large ? 14 : 12 }
+    private var hPad: CGFloat { size == .large ? 20 : 12 }
+    private var vPad: CGFloat { size == .large ? 10 : 7 }
 
     var body: some View {
         Button(action: {
             HapticManager.shared.mediumImpact()
             onTrigger()
         }) {
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 if appState.isLoading {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .scaleEffect(0.7)
+                        .scaleEffect(size == .large ? 0.8 : 0.6)
                 } else {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: iconSize, weight: .semibold))
                 }
 
                 Text("Generate")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: textSize, weight: .semibold))
             }
             .foregroundColor(.white)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
+            .padding(.horizontal, hPad)
+            .padding(.vertical, vPad)
             .background(
                 LinearGradient(
                     colors: [

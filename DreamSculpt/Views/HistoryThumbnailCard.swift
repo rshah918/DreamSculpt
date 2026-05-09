@@ -12,6 +12,24 @@ struct HistoryThumbnailCard: View {
 
     @State private var offset: CGFloat = 0
     @State private var showDeleteConfirm = false
+    /// Cache the decoded thumbnail. Without this, every body recompute
+    /// (e.g. swiping a sibling card) re-reads + decodes the PNG from disk
+    /// because `record.resultImage` is a computed property.
+    @State private var cachedImage: UIImage? = nil
+
+    // Reuse one DateFormatter per format. `DateFormatter()` is expensive to
+    // construct (locale + calendar lookup) and was previously rebuilt on
+    // every body evaluation through `formattedDate` / `formattedTime`.
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .medium
+        return f
+    }()
+    private static let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.timeStyle = .short
+        return f
+    }()
 
     var body: some View {
         ZStack(alignment: .trailing) {
@@ -43,17 +61,28 @@ struct HistoryThumbnailCard: View {
 
     private var cardContent: some View {
         HStack(spacing: 12) {
-            if let image = record.resultImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 80, height: 80)
-                    .cornerRadius(8)
-                    .clipped()
-            } else {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(ColorPalette.surfaceLight)
-                    .frame(width: 80, height: 80)
+            Group {
+                if let image = cachedImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 80, height: 80)
+                        .cornerRadius(8)
+                        .clipped()
+                } else {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(ColorPalette.surfaceLight)
+                        .frame(width: 80, height: 80)
+                }
+            }
+            .task(id: record.id) {
+                // Decode off the main thread so a long history list doesn't
+                // stall scrolling. Once cached on the card, subsequent body
+                // recomputes are free.
+                let image = await Task.detached(priority: .userInitiated) {
+                    record.resultImage
+                }.value
+                await MainActor.run { cachedImage = image }
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -107,14 +136,10 @@ struct HistoryThumbnailCard: View {
     }
 
     private var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter.string(from: record.timestamp)
+        Self.dateFormatter.string(from: record.timestamp)
     }
 
     private var formattedTime: String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: record.timestamp)
+        Self.timeFormatter.string(from: record.timestamp)
     }
 }

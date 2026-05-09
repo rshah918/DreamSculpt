@@ -2,20 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key></key>
-	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Load images to edit using AI</string>
+	<string>DreamSculpt needs access to your photo library so you can pick a base image for AI editing.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Take photos to edit using AI</string>
+	<string>DreamSculpt uses your camera to capture a photo as a starting point for AI editing.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Save your AI-generated images to your Photos library</string>
+	<string>DreamSculpt saves your AI-generated images to your photo library when you tap Save.</string>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
-	</dict>
 </dict>
 </plist>
