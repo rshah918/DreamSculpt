@@ -18,6 +18,7 @@ struct SettingsPanel: View {
 
                 ScrollView {
                     VStack(spacing: 24) {
+                        drawingSection
                         generationLimitSection
                     }
                     .padding()
@@ -133,6 +134,110 @@ struct SettingsPanel: View {
         Text(title)
             .font(.headline)
             .foregroundColor(ColorPalette.textPrimary)
+    }
+
+    // MARK: - Drawing
+
+    private var drawingSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            sectionHeader("Drawing")
+
+            VStack(spacing: 14) {
+                // Pencil-only toggle
+                HStack(spacing: 12) {
+                    Image(systemName: "applepencil")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(ColorPalette.gradientPrimary)
+                        .frame(width: 28)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Apple Pencil Only")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(ColorPalette.textPrimary)
+                        Text("Ignore finger touches while sketching")
+                            .font(.caption)
+                            .foregroundColor(ColorPalette.textMuted)
+                    }
+
+                    Spacer()
+
+                    Toggle("", isOn: $appState.pencilOnlyMode)
+                        .labelsHidden()
+                        .tint(ColorPalette.primary)
+                        .onChange(of: appState.pencilOnlyMode) { _, _ in
+                            HapticManager.shared.lightTap()
+                        }
+                }
+
+                Divider().background(ColorPalette.glassBorder)
+
+                // Symmetry mode picker
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "rectangle.split.2x2")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(ColorPalette.gradientPrimary)
+                            .frame(width: 28)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Symmetry")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundColor(ColorPalette.textPrimary)
+                            Text("Mirror your strokes across the canvas")
+                                .font(.caption)
+                                .foregroundColor(ColorPalette.textMuted)
+                        }
+
+                        Spacer()
+                    }
+
+                    HStack(spacing: 8) {
+                        ForEach(SymmetryMode.allCases) { mode in
+                            symmetryChip(for: mode)
+                        }
+                    }
+                }
+            }
+            .padding(16)
+            .background(Color.white.opacity(0.05))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(ColorPalette.glassBorder, lineWidth: 0.5)
+            )
+        }
+    }
+
+    private func symmetryChip(for mode: SymmetryMode) -> some View {
+        let isSelected = appState.symmetryMode == mode
+        return Button {
+            HapticManager.shared.lightTap()
+            appState.symmetryMode = mode
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: mode.icon)
+                    .font(.system(size: 14, weight: .semibold))
+                Text(mode.displayName)
+                    .font(.caption2.weight(.medium))
+            }
+            .foregroundColor(isSelected ? .white : ColorPalette.textSecondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(
+                Group {
+                    if isSelected {
+                        ColorPalette.gradientPrimary
+                    } else {
+                        Color.white.opacity(0.06)
+                    }
+                }
+            )
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(isSelected ? Color.clear : ColorPalette.glassBorder, lineWidth: 0.5)
+            )
+        }
     }
 }
 

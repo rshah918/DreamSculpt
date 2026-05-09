@@ -96,18 +96,18 @@ struct AuroraHeader: View {
                 )
                 .frame(width: 150)
                 .offset(x: shimmerOffset)
-                .blur(radius: 20)
+                .blur(radius: 10)
         }
     }
 
     // MARK: - Branding Center
     private var brandingCenter: some View {
         ZStack {
-            // Glow behind text
+            // Glow behind text — capped blur to keep this from being a hot redraw
             Text("DreamSculpt")
                 .font(.system(size: 26, weight: .bold, design: .rounded))
                 .foregroundColor(ColorPalette.primary)
-                .blur(radius: glowPulse ? 18 : 12)
+                .blur(radius: glowPulse ? 10 : 8)
                 .opacity(0.5)
 
             VStack(spacing: 2) {
@@ -168,9 +168,12 @@ struct AuroraHeader: View {
     // MARK: - Action Buttons
     private var actionButtons: some View {
         HStack(spacing: 8) {
-            CameraButton()
+//            CameraButton()
 
             LoadImageButton()
+                .opacity(appState.isSplitOpen ? 0 : 1)
+                .allowsHitTesting(!appState.isSplitOpen)
+                .animation(.easeInOut(duration: 0.2), value: appState.isSplitOpen)
 
             if appState.baseImage != nil {
                 clearImageButton
@@ -243,7 +246,7 @@ struct AuroraWaves: View {
                             endPoint: .trailing
                         )
                     )
-                    .blur(radius: 20)
+                    .blur(radius: 12)
                     .offset(y: 20)
 
                 // Wave 2 - Cyan/Purple
@@ -259,7 +262,7 @@ struct AuroraWaves: View {
                             endPoint: .leading
                         )
                     )
-                    .blur(radius: 25)
+                    .blur(radius: 14)
                     .offset(y: 10)
 
                 // Wave 3 - Pink accent
@@ -275,17 +278,18 @@ struct AuroraWaves: View {
                             endPoint: .trailing
                         )
                     )
-                    .blur(radius: 30)
+                    .blur(radius: 16)
                     .offset(y: 30)
             }
             .onAppear {
-                withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
+                // Slower cycles to reduce the per-frame path rebuild work.
+                withAnimation(.easeInOut(duration: 9).repeatForever(autoreverses: true)) {
                     phase1 = .pi * 2
                 }
-                withAnimation(.easeInOut(duration: 5).repeatForever(autoreverses: true)) {
+                withAnimation(.easeInOut(duration: 11).repeatForever(autoreverses: true)) {
                     phase2 = .pi * 2
                 }
-                withAnimation(.easeInOut(duration: 6).repeatForever(autoreverses: true)) {
+                withAnimation(.easeInOut(duration: 13).repeatForever(autoreverses: true)) {
                     phase3 = .pi * 2
                 }
             }
@@ -310,7 +314,8 @@ struct AuroraWavePath: Shape {
 
         path.move(to: CGPoint(x: 0, y: rect.height))
 
-        for x in stride(from: 0, through: rect.width, by: 2) {
+        // 8pt step (was 2pt) — same visible smoothness with ~4× fewer points to compute every frame.
+        for x in stride(from: 0, through: rect.width, by: 8) {
             let relativeX = x / rect.width
             let sine = sin((relativeX * frequency * .pi * 2) + phase)
             let y = midY + (sine * amplitude)
@@ -374,7 +379,9 @@ struct HeaderParticles: View {
     }
 
     private func generateParticles(in size: CGSize) {
-        let particleCount = Int.random(in: 18...25)
+        // Reduced from 18-25 to keep the GPU cool. Each particle drives a perpetual
+        // SwiftUI animation with a blur, which is surprisingly expensive in aggregate.
+        let particleCount = Int.random(in: 8...10)
         let colors: [Color] = [
             ColorPalette.primary.opacity(0.5),
             ColorPalette.accent.opacity(0.4),
@@ -392,7 +399,7 @@ struct HeaderParticles: View {
                 size: CGFloat.random(in: 4...20),
                 color: colors.randomElement() ?? ColorPalette.primary.opacity(0.5),
                 baseOpacity: Double.random(in: 0.3...0.6),
-                animationDuration: Double.random(in: 3.0...6.0),
+                animationDuration: Double.random(in: 5.0...9.0),
                 animationDelay: Double.random(in: 0...2.0),
                 driftX: CGFloat.random(in: -20...20),
                 driftY: CGFloat.random(in: -10...10)

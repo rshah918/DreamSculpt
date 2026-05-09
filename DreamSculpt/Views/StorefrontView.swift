@@ -122,11 +122,38 @@ struct StorefrontView: View {
         VStack(spacing: 0) {
             if store.products.isEmpty {
                 VStack(spacing: 12) {
-                    ProgressView()
-                        .tint(ColorPalette.primary)
-                    Text("Loading products...")
-                        .font(.caption)
-                        .foregroundColor(ColorPalette.textMuted)
+                    switch store.loadState {
+                    case .failed(let message):
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(.orange)
+                        Text("Couldn't load store")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(ColorPalette.textPrimary)
+                        Text(message)
+                            .font(.caption)
+                            .foregroundColor(ColorPalette.textMuted)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 16)
+                        Button {
+                            HapticManager.shared.lightTap()
+                            Task { await store.fetchProducts() }
+                        } label: {
+                            Text("Retry")
+                                .font(.caption.weight(.semibold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 8)
+                                .background(ColorPalette.gradientPrimary)
+                                .cornerRadius(8)
+                        }
+                    default:
+                        ProgressView()
+                            .tint(ColorPalette.primary)
+                        Text("Loading products...")
+                            .font(.caption)
+                            .foregroundColor(ColorPalette.textMuted)
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 32)

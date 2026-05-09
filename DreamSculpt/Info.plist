@@ -2,9 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key></key>
+	<string></string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Load images to edit using AI</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Take photos to edit using AI</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Save your AI-generated images to your Photos library</string>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

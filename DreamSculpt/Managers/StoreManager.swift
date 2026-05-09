@@ -9,7 +9,15 @@ import StoreKit
 class StoreManager: ObservableObject {
     static let shared = StoreManager()
 
+    enum LoadState: Equatable {
+        case idle
+        case loading
+        case loaded
+        case failed(String)
+    }
+
     @Published var products: [Product] = []
+    @Published var loadState: LoadState = .idle
     @Published var purchaseInProgress = false
     @Published var purchaseError: String? = nil
     @Published var purchasedCredits: Int = GenerationLimitManager.shared.purchasedCredits
@@ -33,13 +41,34 @@ class StoreManager: ObservableObject {
         observeTransactions()
     }
 
-    func fetchProducts() async {
-        do {
-            let storeProducts = try await Product.products(for: Self.productIDs)
-            products = storeProducts.sorted { $0.price < $1.price }
-        } catch {
-            print("Failed to fetch products: \(error)")
+    /// Fetches IAP products with retry. TestFlight queries live App Store Connect
+    /// (the local .storekit file is Xcode-only) — transient network or
+    /// just-published-products delays can leave the first attempt empty, so
+    /// we back off and retry up to `maxAttempts` times before surfacing failure.
+    func fetchProducts(maxAttempts: Int = 3) async {
+        if loadState == .loading { return }
+        loadState = .loading
+
+        var lastError: String? = nil
+        for attempt in 0..<maxAttempts {
+            if attempt > 0 {
+                let backoffNs = UInt64(pow(2.0, Double(attempt))) * 1_000_000_000
+                try? await Task.sleep(nanoseconds: backoffNs)
+            }
+            do {
+                let storeProducts = try await Product.products(for: Self.productIDs)
+                if !storeProducts.isEmpty {
+                    products = storeProducts.sorted { $0.price < $1.price }
+                    loadState = .loaded
+                    return
+                }
+                lastError = "No products returned from App Store."
+            } catch {
+                lastError = error.localizedDescription
+                print("fetchProducts attempt \(attempt + 1) failed: \(error)")
+            }
         }
+        loadState = .failed(lastError ?? "Failed to load products.")
     }
 
     func purchase(_ product: Product) async {

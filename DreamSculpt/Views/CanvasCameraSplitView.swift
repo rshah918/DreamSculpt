@@ -1,13 +1,13 @@
 //
-//  SculptSplitView.swift
+//  CanvasCameraSplitView.swift
 //  DreamSculpt
 //
 
 import SwiftUI
 
-struct SculptSplitView<Content: View>: View {
+struct CanvasCameraSplitView<Content: View>: View {
     @Binding var isSplitOpen: Bool
-    var onImagePicked: (UIImage) -> Void
+    var onImagePicked: (UIImage, BaseImageSource) -> Void
     @ViewBuilder var content: () -> Content
 
     @State private var splitFraction: CGFloat = 0.0
@@ -18,8 +18,11 @@ struct SculptSplitView<Content: View>: View {
     @State private var pulseGeneration: Int = 0
     @State private var edgeGlowBreathing = false
     @State private var isPulsing = false
+    /// When the panel is open, the tab sits on the panel side of the divider so it
+    /// reads as "pull right to close". Toggled only at snap, so it animates cleanly.
+    @State private var tabOnPanelSide: Bool = false
 
-    private let pillHalfWidth: CGFloat = 18
+    private let tabWidth: CGFloat = 22
 
     var body: some View {
         GeometryReader { geo in
@@ -27,6 +30,11 @@ struct SculptSplitView<Content: View>: View {
                 // Canvas always at full width — avoids PencilKit resize artifacts
                 content()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .overlay(
+                        Color.black
+                            .opacity(Double(splitFraction) * 0.4)
+                            .allowsHitTesting(false)
+                    )
 
                 // Subtle right-edge glow in canvas mode — hints at the hidden camera panel.
                 // Fades out as the panel opens; gently breathes to stay inviting.
@@ -41,17 +49,22 @@ struct SculptSplitView<Content: View>: View {
                 .opacity(Double(max(0, 1 - splitFraction / 0.15)))
                 .allowsHitTesting(false)
 
-                // Camera panel slides in from the right
+                // Camera panel slides in from the right.
+                // Width snapped to whole pixels — subpixel widths cause edge re-sampling
+                // every frame, which reads as jitter on the panel boundary.
+                // Always kept in the view tree (no opacity gating) so the teaser
+                // layer is rasterised before the panel first slides in — otherwise
+                // the drawer's rounded top corners briefly show the canvas behind
+                // for a frame or two when the CTA pulse begins.
                 HStack(spacing: 0) {
                     Spacer(minLength: 0)
                     CameraRightPanel(
                         showCamera: showCamera,
                         onImagePicked: handleImagePicked
                     )
-                    .frame(width: max(0, geo.size.width * splitFraction))
+                    .frame(width: max(0, (geo.size.width * splitFraction).rounded()))
                     .clipped()
                 }
-                .opacity(splitFraction > 0.01 ? 1 : 0)
 
                 // Purple glow halo on both sides of the divider
                 // Suppressed during CTA pulse so the line doesn't lead the panel edge
@@ -97,8 +110,8 @@ struct SculptSplitView<Content: View>: View {
                 .animation(.easeInOut(duration: 0.18), value: isDragging)
                 .allowsHitTesting(false)
 
-                // Drag handle — always fully on-screen, icon morphs with splitFraction
-                DividerHandleView(splitFraction: splitFraction, isDragging: isDragging)
+                // Drag tab — sits flush against the divider; flips to the panel side when open
+                DividerTabView(splitFraction: splitFraction, isDragging: isDragging, onPanelSide: tabOnPanelSide)
                     .position(x: handleX(geo), y: geo.size.height * 0.45)
                     .gesture(
                         DragGesture(minimumDistance: 1, coordinateSpace: .global)
@@ -162,11 +175,25 @@ struct SculptSplitView<Content: View>: View {
     // MARK: - Position helpers
 
     private func dividerX(_ geo: GeometryProxy) -> CGFloat {
-        geo.size.width * (1.0 - splitFraction)
+        // Snap to whole pixels — the divider is a 2pt vertical line that visually
+        // shimmers if positioned at fractional X during animation.
+        (geo.size.width * (1.0 - splitFraction)).rounded()
     }
 
     private func handleX(_ geo: GeometryProxy) -> CGFloat {
-        max(pillHalfWidth, min(geo.size.width - pillHalfWidth, dividerX(geo)))
+        // Tab sits flush against the divider — on the canvas side when closed, on
+        // the panel side when open. During pulse and normal drag the tab tracks the
+        // divider exactly so the gap between them is constant. Pixel-snapped to
+        // avoid subpixel jitter during continuous drags.
+        let dx = dividerX(geo)
+        let half = tabWidth / 2
+        let raw: CGFloat
+        if tabOnPanelSide {
+            raw = min(geo.size.width - half, dx + half)
+        } else {
+            raw = max(half, dx - half)
+        }
+        return raw.rounded()
     }
 
     // MARK: - Snap helpers
@@ -175,6 +202,7 @@ struct SculptSplitView<Content: View>: View {
         HapticManager.shared.mediumImpact()
         withAnimation(.spring(response: 0.42, dampingFraction: 0.72)) {
             splitFraction = 1.0
+            tabOnPanelSide = true
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             withAnimation(.easeInOut(duration: 0.5)) { showCamera = true }
@@ -184,6 +212,7 @@ struct SculptSplitView<Content: View>: View {
     private func snapToCanvas() {
         withAnimation(.spring(response: 0.42, dampingFraction: 0.72)) {
             splitFraction = 0.0
+            tabOnPanelSide = false
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
             isSplitOpen = false
@@ -192,10 +221,11 @@ struct SculptSplitView<Content: View>: View {
         }
     }
 
-    private func handleImagePicked(_ image: UIImage) {
-        onImagePicked(image)
+    private func handleImagePicked(_ image: UIImage, _ source: BaseImageSource) {
+        onImagePicked(image, source)
         withAnimation(.spring(response: 0.45, dampingFraction: 0.75)) {
             splitFraction = 0.0
+            tabOnPanelSide = false
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
             showCamera = false
@@ -254,47 +284,41 @@ struct SculptSplitView<Content: View>: View {
     }
 }
 
-// MARK: - Divider Handle Pill
+// MARK: - Divider Tab
 
-private struct DividerHandleView: View {
+private struct DividerTabView: View {
     var splitFraction: CGFloat
     var isDragging: Bool
+    var onPanelSide: Bool
 
     /// Normalised 0→1: how far the icon has morphed from chevron to camera
     private var iconProgress: CGFloat {
         min(1, max(0, (splitFraction - 0.25) / 0.4))
     }
 
+    private var roundedCorners: UIRectCorner {
+        onPanelSide ? [.topRight, .bottomRight] : [.topLeft, .bottomLeft]
+    }
+
     var body: some View {
-        VStack(spacing: 7) {
-            // Chevron fades out, camera icon fades in as panel opens
-            ZStack {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(.white)
-                    .opacity(Double(1 - iconProgress))
-                    .scaleEffect(1 - iconProgress * 0.3)
+        ZStack {
+            // Open-direction chevron when closed (points left toward panel),
+            // close-direction chevron when open (points right back toward canvas).
+            Image(systemName: onPanelSide ? "chevron.right" : "chevron.left")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(.white)
+                .opacity(Double(1 - iconProgress))
+                .scaleEffect(1 - iconProgress * 0.3)
 
-                Image(systemName: "camera.fill")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.white)
-                    .opacity(Double(iconProgress))
-                    .scaleEffect(0.7 + iconProgress * 0.3)
-            }
-            .frame(width: 16, height: 14)
-
-            VStack(spacing: 4) {
-                ForEach(0..<3, id: \.self) { _ in
-                    Capsule()
-                        .fill(Color.white.opacity(0.72))
-                        .frame(width: 14, height: 2)
-                }
-            }
+            Image(systemName: "camera.fill")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.white)
+                .opacity(Double(iconProgress))
+                .scaleEffect(0.7 + iconProgress * 0.3)
         }
-        .padding(.horizontal, 7)
-        .padding(.vertical, 13)
+        .frame(width: 22, height: 50)
         .background(
-            Capsule()
+            RoundedCorner(radius: 8, corners: roundedCorners)
                 .fill(
                     LinearGradient(
                         colors: [ColorPalette.accent, ColorPalette.primary],
@@ -303,7 +327,10 @@ private struct DividerHandleView: View {
                     )
                 )
         )
-        .overlay(Capsule().stroke(Color.white.opacity(0.2), lineWidth: 1))
+        .overlay(
+            RoundedCorner(radius: 8, corners: roundedCorners)
+                .stroke(Color.white.opacity(0.25), lineWidth: 1)
+        )
         .shadow(color: ColorPalette.primary.opacity(isDragging ? 0.95 : 0.65),
                 radius: isDragging ? 18 : 10)
         .scaleEffect(isDragging ? 1.06 : 1.0)

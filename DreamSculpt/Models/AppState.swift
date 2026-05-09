@@ -6,13 +6,59 @@
 import SwiftUI
 import Combine
 
+enum BaseImageSource {
+    case camera
+    case library
+}
+
+enum SymmetryMode: String, CaseIterable, Identifiable {
+    case off
+    case vertical    // mirror across the vertical centerline (left ↔ right)
+    case horizontal  // mirror across the horizontal centerline (top ↔ bottom)
+    case quad        // 4-way kaleidoscope (both axes)
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .off: return "Off"
+        case .vertical: return "Mirror"
+        case .horizontal: return "Flip"
+        case .quad: return "Quad"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .off: return "rectangle.dashed"
+        case .vertical: return "rectangle.split.2x1"
+        case .horizontal: return "rectangle.split.1x2"
+        case .quad: return "rectangle.split.2x2"
+        }
+    }
+
+    /// Cycle order for tap-to-cycle UI: off → vertical → horizontal → quad → off…
+    var next: SymmetryMode {
+        switch self {
+        case .off: return .vertical
+        case .vertical: return .horizontal
+        case .horizontal: return .quad
+        case .quad: return .off
+        }
+    }
+}
+
 @MainActor
 class AppState: ObservableObject {
     @Published var currentPreviewImage: UIImage? = nil
     @Published var isDrawerOpen: Bool = false
     @Published var isLoading: Bool = false
+    @Published var isSplitOpen: Bool = false
     @Published var history: [GenerationRecord] = []
     @Published var baseImage: UIImage? = nil
+    /// Where the current base image came from. Used to decide whether "Save to
+    /// Photos" should also save the untouched original (only when from .camera).
+    @Published var baseImageSource: BaseImageSource? = nil
 
     // Session history - in-memory list of all generations this session
     @Published var sessionImages: [UIImage] = []
@@ -34,6 +80,19 @@ class AppState: ObservableObject {
     // Canvas appearance
     @Published var showPaperTexture: Bool {
         didSet { UserDefaults.standard.set(showPaperTexture, forKey: "showPaperTexture") }
+    }
+
+    // Drawing input mode — when true, only Apple Pencil registers strokes
+    // (finger touches are ignored). Useful for sketchers who rest their hand on
+    // the screen and want true palm rejection.
+    @Published var pencilOnlyMode: Bool {
+        didSet { UserDefaults.standard.set(pencilOnlyMode, forKey: "pencilOnlyMode") }
+    }
+
+    // Mirror/symmetry mode — when set, every user stroke is automatically
+    // reflected across the canvas centerline(s) for kaleidoscope-style drawing.
+    @Published var symmetryMode: SymmetryMode {
+        didSet { UserDefaults.standard.set(symmetryMode.rawValue, forKey: "symmetryMode") }
     }
 
     // Generation limit
@@ -68,6 +127,13 @@ class AppState: ObservableObject {
         // Load persisted values
         customPrompt = UserDefaults.standard.string(forKey: "customPrompt") ?? Self.defaultPrompt
         showPaperTexture = UserDefaults.standard.object(forKey: "showPaperTexture") as? Bool ?? true
+        pencilOnlyMode = UserDefaults.standard.bool(forKey: "pencilOnlyMode")
+        if let raw = UserDefaults.standard.string(forKey: "symmetryMode"),
+           let mode = SymmetryMode(rawValue: raw) {
+            symmetryMode = mode
+        } else {
+            symmetryMode = .off
+        }
 
         if let settingsData = UserDefaults.standard.data(forKey: "generationSettings"),
            let settings = try? JSONDecoder().decode(GenerationSettings.self, from: settingsData) {
@@ -143,11 +209,14 @@ class AppState: ObservableObject {
         }
     }
 
-    func setBaseImage(_ image: UIImage?) {
+    func setBaseImage(_ image: UIImage?, source: BaseImageSource? = nil) {
         let hadImage = baseImage != nil
         let willHaveImage = image != nil
 
         baseImage = image
+        // Track provenance so the preview's Save action can also persist the original
+        // when the photo was just taken on the camera.
+        baseImageSource = image == nil ? nil : source
 
         // Auto-switch prompt based on whether we have a base image
         if willHaveImage && !hadImage {

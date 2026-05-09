@@ -22,13 +22,15 @@ struct CanvasView: UIViewRepresentable {
     var customPrompt: String
     var generationSettings: GenerationSettings
     var onGenerationComplete: ((UIImage, UIImage) -> Void)?
-    var clearCanvasAction: (() -> Void)?
     @Binding var triggerGeneration: (() -> Void)?
     var onDrawingChanged: ((Bool) -> Void)?
     @Binding var requestFocus: (() -> Void)?
     @Binding var undoAction: (() -> Void)?
+    @Binding var clearAction: (() -> Void)?
     @Binding var resignFocus: (() -> Void)?
     var canvasReady: Bool = true
+    var pencilOnlyMode: Bool = false
+    var symmetryMode: SymmetryMode = .off
 
     func makeUIView(context: Context) -> UIView {
         let containerView = UIView()
@@ -45,16 +47,32 @@ struct CanvasView: UIViewRepresentable {
         let canvasView = PKCanvasView()
         canvasView.backgroundColor = .clear
         canvasView.isOpaque = false
-        canvasView.drawingPolicy = .anyInput
+        canvasView.drawingPolicy = pencilOnlyMode ? .pencilOnly : .anyInput
         canvasView.translatesAutoresizingMaskIntoConstraints = false
         canvasView.tag = 200
         containerView.addSubview(canvasView)
 
+        // Restore the persisted drawing (if any) before installing the delegate
+        // so the load doesn't trigger a redundant save on the next change.
+        if let restored = Coordinator.loadPersistedDrawing() {
+            canvasView.drawing = restored
+        }
+
         // Coordinator references
         context.coordinator.canvasView = canvasView
         context.coordinator.backgroundImageView = backgroundImageView
+        // Seed the stroke-count tracker so symmetry mirroring only fires for
+        // strokes the user adds *after* mount — not the restored ones.
+        context.coordinator.trackedStrokeCount = canvasView.drawing.strokes.count
 
         canvasView.delegate = context.coordinator
+
+        // Surface initial hasDrawing state so the prompt bar's clear button
+        // appears immediately after a restore.
+        let initialHasDrawing = !canvasView.drawing.bounds.isEmpty
+        Task { @MainActor in
+            self.onDrawingChanged?(initialHasDrawing)
+        }
 
         // Constraints - background image has bottom inset to avoid prompt bar occlusion
         NSLayoutConstraint.activate([
@@ -80,6 +98,14 @@ struct CanvasView: UIViewRepresentable {
 
         // Update coordinator reference
         context.coordinator.parent = self
+
+        // React to pencil-only mode toggle in Settings without rebuilding the view.
+        if let canvasView = context.coordinator.canvasView {
+            let desiredPolicy: PKCanvasViewDrawingPolicy = pencilOnlyMode ? .pencilOnly : .anyInput
+            if canvasView.drawingPolicy != desiredPolicy {
+                canvasView.drawingPolicy = desiredPolicy
+            }
+        }
 
         // Attach tool picker once canvas is in window and canvas is ready
         DispatchQueue.main.async {
@@ -109,6 +135,41 @@ struct CanvasView: UIViewRepresentable {
 
         private let debounceManager = DebounceManager.shared
         private var pendingDrawing: PKDrawing?
+        private var saveDebounceItem: DispatchWorkItem?
+
+        /// Tracks how many strokes were in the drawing the last time we observed
+        /// it. Used by symmetry mirroring to detect strokes added by the user
+        /// (so we can mirror them) and to avoid re-mirroring strokes we just
+        /// appended ourselves.
+        var trackedStrokeCount: Int = 0
+
+        private static var persistedDrawingURL: URL {
+            let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            return docs.appendingPathComponent("canvas.drawing")
+        }
+
+        static func loadPersistedDrawing() -> PKDrawing? {
+            let url = persistedDrawingURL
+            guard FileManager.default.fileExists(atPath: url.path),
+                  let data = try? Data(contentsOf: url),
+                  let drawing = try? PKDrawing(data: data) else { return nil }
+            return drawing
+        }
+
+        static func deletePersistedDrawing() {
+            try? FileManager.default.removeItem(at: persistedDrawingURL)
+        }
+
+        private func schedulePersist(_ drawing: PKDrawing) {
+            saveDebounceItem?.cancel()
+            let item = DispatchWorkItem {
+                try? drawing.dataRepresentation().write(to: Coordinator.persistedDrawingURL, options: .atomic)
+            }
+            saveDebounceItem = item
+            // 1.2s debounce — fires after the user pauses; canvasViewDidEndUsingTool
+            // already let us know the stroke completed, so this just batches bursts.
+            DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 1.2, execute: item)
+        }
 
         init(_ parent: CanvasView) {
             self.parent = parent
@@ -125,6 +186,15 @@ struct CanvasView: UIViewRepresentable {
                 self.parent.undoAction = { [weak self] in
                     self?.canvasView?.undoManager?.undo()
                 }
+                self.parent.clearAction = { [weak self] in
+                    guard let canvasView = self?.canvasView else { return }
+                    canvasView.drawing = PKDrawing()
+                    self?.pendingDrawing = nil
+                    self?.trackedStrokeCount = 0
+                    self?.saveDebounceItem?.cancel()
+                    Coordinator.deletePersistedDrawing()
+                    self?.parent.onDrawingChanged?(false)
+                }
                 self.parent.resignFocus = { [weak self] in
                     self?.canvasView?.resignFirstResponder()
                 }
@@ -132,11 +202,92 @@ struct CanvasView: UIViewRepresentable {
         }
 
         func canvasViewDrawingDidChange(_ canvasView: PKCanvasView) {
+            // Apply symmetry to any strokes the user just added before we
+            // record the new drawing — that way the mirrored strokes are
+            // captured in the persisted state and the generation snapshot.
+            applySymmetryIfNeeded(on: canvasView)
+
             pendingDrawing = canvasView.drawing
+            trackedStrokeCount = canvasView.drawing.strokes.count
             let hasDrawing = !canvasView.drawing.bounds.isEmpty
             Task { @MainActor in
                 parent.onDrawingChanged?(hasDrawing)
             }
+            // Persist (debounced). If the drawing was just emptied, drop any
+            // stale file rather than writing an empty one.
+            if hasDrawing {
+                schedulePersist(canvasView.drawing)
+            } else {
+                saveDebounceItem?.cancel()
+                Coordinator.deletePersistedDrawing()
+            }
+        }
+
+        // MARK: - Symmetry mirroring
+
+        /// If symmetry is enabled and the user has added strokes since the
+        /// last change, reflect those strokes across the configured axis/axes
+        /// and append the mirrors to the drawing. Updates `trackedStrokeCount`
+        /// to the post-mirror total so the next callback (triggered by our own
+        /// append) doesn't re-mirror them.
+        private func applySymmetryIfNeeded(on canvasView: PKCanvasView) {
+            let mode = parent.symmetryMode
+            guard mode != .off else { return }
+
+            let currentCount = canvasView.drawing.strokes.count
+            let added = currentCount - trackedStrokeCount
+            // Only mirror when strokes were *added* (not removed by undo/eraser).
+            guard added > 0 else { return }
+
+            let canvasSize = canvasView.bounds.size
+            guard canvasSize.width > 0, canvasSize.height > 0 else { return }
+
+            let userStrokes = Array(canvasView.drawing.strokes.suffix(added))
+            var mirrored: [PKStroke] = []
+            for stroke in userStrokes {
+                switch mode {
+                case .off:
+                    break
+                case .vertical:
+                    mirrored.append(reflect(stroke, axis: .vertical, canvasSize: canvasSize))
+                case .horizontal:
+                    mirrored.append(reflect(stroke, axis: .horizontal, canvasSize: canvasSize))
+                case .quad:
+                    let v = reflect(stroke, axis: .vertical, canvasSize: canvasSize)
+                    let h = reflect(stroke, axis: .horizontal, canvasSize: canvasSize)
+                    let vh = reflect(v, axis: .horizontal, canvasSize: canvasSize)
+                    mirrored.append(contentsOf: [v, h, vh])
+                }
+            }
+            guard !mirrored.isEmpty else { return }
+
+            // Pre-bump the tracked count so the synchronous re-entry triggered
+            // by the append below sees `added == 0` and bails out.
+            trackedStrokeCount = currentCount + mirrored.count
+            canvasView.drawing.strokes.append(contentsOf: mirrored)
+        }
+
+        private enum SymmetryAxis { case vertical, horizontal }
+
+        /// Reflect a stroke across the canvas centerline. Vertical axis mirrors
+        /// left↔right; horizontal mirrors top↔bottom. The reflection is composed
+        /// onto whatever transform the stroke already has (typically `.identity`
+        /// for fresh user strokes, but non-identity for an already-mirrored stroke
+        /// when we apply quad symmetry).
+        private func reflect(_ stroke: PKStroke, axis: SymmetryAxis, canvasSize: CGSize) -> PKStroke {
+            var copy = stroke
+            let mirror: CGAffineTransform
+            switch axis {
+            case .vertical:
+                // x' = width - x  →  scale x by -1, then translate by +width
+                mirror = CGAffineTransform(scaleX: -1, y: 1)
+                    .concatenating(CGAffineTransform(translationX: canvasSize.width, y: 0))
+            case .horizontal:
+                mirror = CGAffineTransform(scaleX: 1, y: -1)
+                    .concatenating(CGAffineTransform(translationX: 0, y: canvasSize.height))
+            }
+            copy.transform = copy.transform.concatenating(mirror)
+            return copy
         }
 
         func canvasViewDidBeginUsingTool(_ canvasView: PKCanvasView) {

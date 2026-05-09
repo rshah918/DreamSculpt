@@ -32,7 +32,7 @@ struct LoadImageButton: View {
                 if let data = try? await newValue?.loadTransferable(type: Data.self),
                    let image = UIImage(data: data) {
                     await MainActor.run {
-                        appState.setBaseImage(image)
+                        appState.setBaseImage(image, source: .library)
                     }
                 }
             }
@@ -65,7 +65,7 @@ struct CameraButton: View {
         }
         .fullScreenCover(isPresented: $showCamera) {
             CameraPicker { image in
-                appState.setBaseImage(image)
+                appState.setBaseImage(image, source: .camera)
             }
             .ignoresSafeArea()
         }
@@ -93,6 +93,7 @@ struct CameraButton: View {
 
 struct CameraPicker: UIViewControllerRepresentable {
     var onImagePicked: (UIImage) -> Void
+    var onCancel: (() -> Void)? = nil
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
@@ -104,14 +105,16 @@ struct CameraPicker: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onImagePicked: onImagePicked)
+        Coordinator(onImagePicked: onImagePicked, onCancel: onCancel)
     }
 
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         let onImagePicked: (UIImage) -> Void
+        let onCancel: (() -> Void)?
 
-        init(onImagePicked: @escaping (UIImage) -> Void) {
+        init(onImagePicked: @escaping (UIImage) -> Void, onCancel: (() -> Void)?) {
             self.onImagePicked = onImagePicked
+            self.onCancel = onCancel
         }
 
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
@@ -123,6 +126,7 @@ struct CameraPicker: UIViewControllerRepresentable {
 
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             picker.dismiss(animated: true)
+            onCancel?()
         }
     }
 }

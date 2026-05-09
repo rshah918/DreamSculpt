@@ -15,7 +15,7 @@ struct ImageRequest: Codable {
     init?(image: UIImage, prompt: String) {
         guard let pngData = image.pngData() else { return nil }
         self.text_prompt = prompt
-        self.image_prompt = pngData.base64EncodedString()
+        self.image_prompt = "data:image/png;base64," + pngData.base64EncodedString()
     }
 }
 

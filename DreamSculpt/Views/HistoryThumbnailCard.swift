@@ -22,6 +22,7 @@ struct HistoryThumbnailCard: View {
                 .gesture(swipeGesture)
         }
         .frame(height: 100)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private var deleteBackground: some View {

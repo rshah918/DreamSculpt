@@ -21,6 +21,9 @@ struct PromptBar: View {
     var onGenerate: () -> Void = {}
     var onCollapse: () -> Void = {}
     var onUndo: () -> Void = {}
+    var onClear: () -> Void = {}
+
+    @State private var showClearConfirm: Bool = false
 
     var body: some View {
         VStack(spacing: 12) {
@@ -29,25 +32,50 @@ struct PromptBar: View {
                 HStack(spacing: 12) {
                     Spacer()
 
+                    // Symmetry quick-cycle — taps cycle off → mirror → flip → quad.
+                    // Lights up when active so the user knows mirroring is on.
+                    SymmetryQuickButton(mode: $appState.symmetryMode)
+
+                    // Clear-canvas button — only fades in when there's something to clear
+                    if hasDrawing {
+                        Button {
+                            HapticManager.shared.lightTap()
+                            showClearConfirm = true
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(width: 36, height: 36)
+                                .background(Color.black.opacity(0.6))
+                                .cornerRadius(9)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 9)
+                                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                )
+                        }
+                        .transition(.scale.combined(with: .opacity))
+                    }
+
                     // Undo button
                     Button {
                         HapticManager.shared.lightTap()
                         onUndo()
                     } label: {
                         Image(systemName: "arrow.uturn.backward")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(.white)
-                            .frame(width: 40, height: 40)
+                            .frame(width: 36, height: 36)
                             .background(Color.black.opacity(0.6))
-                            .cornerRadius(10)
+                            .cornerRadius(9)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 10)
+                                RoundedRectangle(cornerRadius: 9)
                                     .stroke(Color.white.opacity(0.2), lineWidth: 1)
                             )
                     }
 
                     GenerateButton(hasDrawing: hasDrawing, hasBaseImage: hasBaseImage, onTrigger: onGenerate)
                 }
+                .animation(.spring(response: 0.3, dampingFraction: 0.75), value: hasDrawing)
             }
 
             // Prompt bar
@@ -59,11 +87,11 @@ struct PromptBar: View {
                 }
             }
             .background(
-                // Glow effect behind the bar
+                // Glow effect behind the bar — smaller blur + opacity pulse instead of
+                // scale, so the GPU isn't re-rendering a large blurred shape every frame.
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(ColorPalette.primary.opacity(0.15))
-                    .blur(radius: 20)
-                    .scaleEffect(pulseAnimation ? 1.05 : 1.0)
+                    .fill(ColorPalette.primary.opacity(pulseAnimation ? 0.18 : 0.10))
+                    .blur(radius: 12)
             )
             .background(
                 // Solid background
@@ -93,11 +121,20 @@ struct PromptBar: View {
         .onChange(of: isExpanded) { _, expanded in
             if expanded {
                 editingPrompt = appState.customPrompt
+            } else {
+                // Collapse from anywhere (header chevron, tap-outside, Generate) —
+                // drop keyboard, commit the draft, then hand focus back to the canvas
+                // after the keyboard animation so the PencilKit tool picker reappears.
+                isTextFieldFocused = false
+                appState.customPrompt = editingPrompt
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    onCollapse()
+                }
             }
         }
         .onAppear {
-            // Subtle pulse animation for attention
-            withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+            // Subtle pulse animation for attention — slow cycle keeps it light.
+            withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
                 pulseAnimation = true
             }
         }
@@ -109,6 +146,19 @@ struct PromptBar: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
             keyboardHeight = 0
+        }
+        .confirmationDialog(
+            "Clear canvas?",
+            isPresented: $showClearConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Clear Drawing", role: .destructive) {
+                HapticManager.shared.mediumImpact()
+                onClear()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will erase your current sketch.")
         }
     }
 
@@ -172,11 +222,7 @@ struct PromptBar: View {
             .contentShape(Rectangle())
             .onTapGesture {
                 HapticManager.shared.lightTap()
-                isTextFieldFocused = false
-                isExpanded = false
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    onCollapse()
-                }
+                isExpanded = false  // .onChange handles blur, persist, and delayed onCollapse
             }
             .padding(.horizontal, 16)
             .padding(.top, 16)
@@ -237,17 +283,15 @@ struct PromptBar: View {
 
                 Button {
                     HapticManager.shared.mediumImpact()
-                    appState.customPrompt = editingPrompt
-                    isTextFieldFocused = false
-                    isExpanded = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        onCollapse()
+                    isExpanded = false  // .onChange handles blur, persist, and delayed onCollapse
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                        onGenerate()
                     }
                 } label: {
                     HStack(spacing: 6) {
-                        Text("Apply")
+                        Text("Generate")
                             .font(.subheadline.weight(.semibold))
-                        Image(systemName: "checkmark")
+                        Image(systemName: "sparkles")
                             .font(.system(size: 12, weight: .semibold))
                     }
                     .foregroundColor(.white)
@@ -260,6 +304,45 @@ struct PromptBar: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
         }
+    }
+}
+
+// MARK: - Symmetry Quick Button
+
+/// One-tap cycle through the four symmetry modes. The icon morphs to match
+/// the active mode and gets a colored fill + glow when symmetry is active,
+/// so users sketching can see at a glance whether their strokes will mirror.
+struct SymmetryQuickButton: View {
+    @Binding var mode: SymmetryMode
+
+    var body: some View {
+        Button {
+            HapticManager.shared.lightTap()
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                mode = mode.next
+            }
+        } label: {
+            Image(systemName: mode.icon)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.white)
+                .frame(width: 36, height: 36)
+                .background(
+                    Group {
+                        if mode == .off {
+                            Color.black.opacity(0.6)
+                        } else {
+                            ColorPalette.gradientPrimary
+                        }
+                    }
+                )
+                .cornerRadius(9)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 9)
+                        .stroke(mode == .off ? Color.white.opacity(0.2) : Color.white.opacity(0.4), lineWidth: 1)
+                )
+                .shadow(color: mode == .off ? .clear : ColorPalette.primary.opacity(0.5), radius: 6)
+        }
+        .accessibilityLabel("Symmetry mode: \(mode.displayName)")
     }
 }
 

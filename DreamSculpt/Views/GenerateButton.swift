@@ -13,7 +13,9 @@ struct GenerateButton: View {
     var onTrigger: () -> Void
 
     private var isDisabled: Bool {
-        appState.isLoading || (!hasDrawing && !hasBaseImage)
+        // Enable when there's a sketch, a base image, or a customized prompt —
+        // any of which is enough input for the model to act on.
+        appState.isLoading || (!hasDrawing && !hasBaseImage && !appState.hasCustomPrompt)
     }
 
     var body: some View {
